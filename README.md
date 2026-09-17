@@ -1,3 +1,12 @@
+University Door Educational Platform
+
+Overview: A web-based educational application (universitydoor.vercel.app) designed to provide high school students in Ethiopia with seamless access to study materials, practice exams, and subject resources.
+
+Tech Stack: Next.js, React, Node.js, TypeScript, and PostgreSQL (hosted on Vercel and Supabase).
+
+Role & Contributions: Designed and built the application end-to-end as a full-stack developer. Implemented responsive UI components for interactive quiz modules, engineered backend RESTful APIs for content fetching, and structured relational database schemas to efficiently query subject categories, user progress, and exam materials. Optimized client-side asset delivery to ensure fast load times over low-bandwidth network connections.
+
+
 # Welcome to your Lovable project
  the next top startup from Harar
 ## Project info

@@ -45,6 +45,7 @@ export const localAuthService = {
     const token = localStorage.getItem('auth_token');
     
     if (!token) {
+      console.log('No token found in localStorage');
       return {
         session: null,
         profile: null,
@@ -52,6 +53,7 @@ export const localAuthService = {
     }
 
     try {
+      console.log('Fetching session with token:', token ? '***' + token.slice(-4) : 'missing');
       const response = await fetch(`${API_BASE}/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -59,6 +61,7 @@ export const localAuthService = {
       });
 
       if (!response.ok) {
+        console.error('Session fetch failed:', response.status);
         localStorage.removeItem('auth_token');
         return {
           session: null,
@@ -67,6 +70,7 @@ export const localAuthService = {
       }
 
       const data = await response.json();
+      console.log('Session data received:', data);
       const authUser = buildAuthUser(data);
       const userProfile = buildUserProfile(data);
 
@@ -132,6 +136,7 @@ export const localAuthService = {
 
   async signIn(input: SignInInput): Promise<AuthSessionResponse> {
     try {
+      console.log('Attempting sign in with phone:', input.phone);
       const response = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: {
@@ -144,6 +149,7 @@ export const localAuthService = {
       });
 
       const data = await response.json();
+      console.log('Sign in response:', response.status, data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Invalid phone or password');
@@ -151,11 +157,13 @@ export const localAuthService = {
 
       // Store token
       if (data.token) {
+        console.log('Storing token in localStorage');
         localStorage.setItem('auth_token', data.token);
       }
 
       const authUser = buildAuthUser(data);
       const userProfile = buildUserProfile(data);
+      console.log('Built auth user and profile:', { authUser, userProfile });
 
       return {
         session: {

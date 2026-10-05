@@ -46,6 +46,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const applyUserData = useCallback(
     async (authUser: AuthUser, userProfile: UserProfile) => {
+      console.log("Applying user data:", { authUser, userProfile });
       setUser(authUser);
       setProfile(userProfile);
 

@@ -116,6 +116,8 @@ const App = () => (
                     </Suspense>
                   </RequireAuth>
                 } />
+                <Route path="/grade/7/*" element={<Navigate to="/grades" replace />} />
+                <Route path="/grade/8/*" element={<Navigate to="/grades" replace />} />
                 <Route path="/grade/:grade/subjects" element={
                   <RequireAuth>
                     <Suspense fallback={<PageLoader />}>

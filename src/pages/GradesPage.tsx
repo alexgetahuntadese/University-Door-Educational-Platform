@@ -8,24 +8,6 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 
 const gradeData = [
   {
-    number: 7,
-    subjects: 8,
-    icon: BookOpen,
-    accent: "from-pink-500 to-rose-500",
-    glow: "shadow-pink-500/30",
-    ring: "ring-pink-400/30",
-    description: "Start your journey",
-  },
-  {
-    number: 8,
-    subjects: 8,
-    icon: Sparkles,
-    accent: "from-indigo-500 to-purple-500",
-    glow: "shadow-indigo-500/30",
-    ring: "ring-indigo-400/30",
-    description: "Develop core skills",
-  },
-  {
     number: 9,
     subjects: 9,
     icon: BookOpen,

@@ -31,14 +31,20 @@ const LoginPage = () => {
     }
 
     try {
+      console.log("Attempting login with:", phone);
       const profile = await signIn(phone, password);
       console.log("Login successful, profile:", profile);
       toast.success("Signed in successfully!");
       
       // Navigate based on role
-      if (profile?.preferences?.role === 'teacher' || profile?.preferences?.role === 'admin') {
+      const role = profile?.preferences?.role;
+      console.log("User role:", role);
+      
+      if (role === 'teacher' || role === 'admin') {
+        console.log("Navigating to teacher dashboard");
         navigate("/teachers");
       } else {
+        console.log("Navigating to grades");
         navigate("/grades");
       }
     } catch (error: any) {

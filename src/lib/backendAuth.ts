@@ -106,7 +106,6 @@ const requestJson = async <T>(path: string, init: RequestInit = {}) => {
 
   // Check if response has content
   const contentType = response.headers.get('content-type');
-  const contentLength = response.headers.get('content-length');
   
   if (!contentType?.includes('application/json')) {
     const text = await response.text();
@@ -114,11 +113,21 @@ const requestJson = async <T>(path: string, init: RequestInit = {}) => {
     throw new Error(`Server returned non-JSON response. Check if API server is running at ${baseUrl}`);
   }
   
-  if (contentLength === '0' || !response.body) {
+  // Read text first to handle empty or malformed responses
+  const text = await response.text();
+  
+  if (!text || text.trim() === '') {
+    console.error('[API] Empty response from server');
     throw new Error('Server returned empty response');
   }
-
-  return (await response.json()) as T;
+  
+  try {
+    const data = JSON.parse(text);
+    return data as T;
+  } catch (error) {
+    console.error('[API] Failed to parse JSON response:', text.substring(0, 200));
+    throw new Error('Server returned invalid JSON response');
+  }
 };
 
 const persistSession = (payload: AuthSessionResponse) => {

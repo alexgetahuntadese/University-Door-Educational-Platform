@@ -106,7 +106,22 @@ Generate a final summary. Return valid JSON only:
       });
     }
 
-    const data = await response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      console.error("Empty response from AI gateway");
+      return new Response(JSON.stringify({ error: "Empty response from AI service" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error("Failed to parse AI gateway response:", text.substring(0, 200));
+      return new Response(JSON.stringify({ error: "Invalid JSON from AI service" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     let content = data.choices?.[0]?.message?.content || "";
     
     // Strip markdown code blocks if present

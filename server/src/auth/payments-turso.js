@@ -21,7 +21,7 @@ const client = createClient({
 
 // Create payments table
 try {
-  await client.execute(`
+  const createPaymentsTable = `
     CREATE TABLE IF NOT EXISTS payments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -36,10 +36,15 @@ try {
       verified_at TEXT,
       reviewer_notes TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-    CREATE INDEX IF NOT EXISTS idx_payments_user ON payments(user_id);
-    CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
-  `)
+    )
+  `
+
+  const createPaymentUserIndex = `CREATE INDEX IF NOT EXISTS idx_payments_user ON payments(user_id)`
+  const createPaymentStatusIndex = `CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status)`
+
+  await client.execute(createPaymentsTable)
+  await client.execute(createPaymentUserIndex)
+  await client.execute(createPaymentStatusIndex)
   console.log('✅ Payments table initialized in Turso')
 } catch (err) {
   console.error('❌ Failed to initialize payments table:', err)

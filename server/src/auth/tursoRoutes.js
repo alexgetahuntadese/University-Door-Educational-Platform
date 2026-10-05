@@ -29,7 +29,7 @@ const client = createClient({
 console.log('✅ Turso client initialized')
 
 // Create tables
-const initSchema = `
+const createTable = `
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     phone TEXT UNIQUE NOT NULL,
@@ -41,12 +41,14 @@ const initSchema = `
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login TEXT
-  );
-  CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
+  )
 `
 
+const createIndex = `CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone)`
+
 try {
-  await client.execute(initSchema)
+  await client.execute(createTable)
+  await client.execute(createIndex)
   console.log('✅ Turso database schema initialized')
 } catch (err) {
   console.error('❌ Failed to initialize Turso schema:', err)

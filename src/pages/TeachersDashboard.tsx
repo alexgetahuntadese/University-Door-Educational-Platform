@@ -26,6 +26,7 @@ interface StudentProgress {
   id: string;
   name: string;
   stream: 'natural' | 'social';
+  grade: string;
   subjects: StudentSubjectPerformance[];
   totalCorrect: number;
   totalMissed: number;
@@ -39,6 +40,7 @@ const mockStudents: StudentProgress[] = [
     id: '1',
     name: 'Abebe Kebede',
     stream: 'natural',
+    grade: 'Grade 12',
     lastActivity: '2 hours ago',
     subjects: [
       { subject: 'Mathematics', correct: 45, missed: 15, total: 60 },
@@ -56,6 +58,7 @@ const mockStudents: StudentProgress[] = [
     id: '2',
     name: 'Tigist Haile',
     stream: 'social',
+    grade: 'Grade 11',
     lastActivity: '5 hours ago',
     subjects: [
       { subject: 'Mathematics', correct: 40, missed: 20, total: 60 },
@@ -73,6 +76,7 @@ const mockStudents: StudentProgress[] = [
     id: '3',
     name: 'Dawit Alemu',
     stream: 'natural',
+    grade: 'Grade 10',
     lastActivity: '1 day ago',
     subjects: [
       { subject: 'Mathematics', correct: 30, missed: 30, total: 60 },
@@ -90,6 +94,7 @@ const mockStudents: StudentProgress[] = [
     id: '4',
     name: 'Sara Tekle',
     stream: 'social',
+    grade: 'Grade 9',
     lastActivity: '3 days ago',
     subjects: [
       { subject: 'Mathematics', correct: 55, missed: 5, total: 60 },
@@ -107,6 +112,7 @@ const mockStudents: StudentProgress[] = [
     id: '5',
     name: 'Kifle Yohannes',
     stream: 'natural',
+    grade: 'Grade 12',
     lastActivity: '1 week ago',
     subjects: [
       { subject: 'Mathematics', correct: 20, missed: 40, total: 60 },
@@ -127,6 +133,7 @@ const TeachersDashboard = () => {
   const { isTeacher, isLoading, session } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStream, setFilterStream] = useState<'all' | 'natural' | 'social'>('all');
+  const [filterGrade, setFilterGrade] = useState<'all' | '9' | '10' | '11' | '12'>('all');
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newStudent, setNewStudent] = useState({ fullName: '', phone: '', password: '', stream: 'natural' as 'natural' | 'social' });
@@ -151,9 +158,10 @@ const TeachersDashboard = () => {
     return mockStudents.filter((student) => {
       const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStream = filterStream === 'all' || student.stream === filterStream;
-      return matchesSearch && matchesStream;
+      const matchesGrade = filterGrade === 'all' || student.grade === `Grade ${filterGrade}`;
+      return matchesSearch && matchesStream && matchesGrade;
     });
-  }, [searchQuery, filterStream]);
+  }, [searchQuery, filterStream, filterGrade]);
 
   const overallStats = useMemo(() => {
     const totalStudents = mockStudents.length;
@@ -430,6 +438,43 @@ const TeachersDashboard = () => {
                   className={filterStream === 'social' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : 'border-white/20 text-white/70 hover:bg-white/10'}
                 >
                   Social
+                </Button>
+              </div>
+              <div className="flex gap-2 mt-2 md:mt-0">
+                <Button
+                  variant={filterGrade === 'all' ? 'default' : 'outline'}
+                  onClick={() => setFilterGrade('all')}
+                  className={filterGrade === 'all' ? 'bg-white/20 text-white' : 'border-white/20 text-white/70 hover:bg-white/10'}
+                >
+                  All Grades
+                </Button>
+                <Button
+                  variant={filterGrade === '9' ? 'default' : 'outline'}
+                  onClick={() => setFilterGrade('9')}
+                  className={filterGrade === '9' ? 'bg-white/20 text-white' : 'border-white/20 text-white/70 hover:bg-white/10'}
+                >
+                  Grade 9
+                </Button>
+                <Button
+                  variant={filterGrade === '10' ? 'default' : 'outline'}
+                  onClick={() => setFilterGrade('10')}
+                  className={filterGrade === '10' ? 'bg-white/20 text-white' : 'border-white/20 text-white/70 hover:bg-white/10'}
+                >
+                  Grade 10
+                </Button>
+                <Button
+                  variant={filterGrade === '11' ? 'default' : 'outline'}
+                  onClick={() => setFilterGrade('11')}
+                  className={filterGrade === '11' ? 'bg-white/20 text-white' : 'border-white/20 text-white/70 hover:bg-white/10'}
+                >
+                  Grade 11
+                </Button>
+                <Button
+                  variant={filterGrade === '12' ? 'default' : 'outline'}
+                  onClick={() => setFilterGrade('12')}
+                  className={filterGrade === '12' ? 'bg-white/20 text-white' : 'border-white/20 text-white/70 hover:bg-white/10'}
+                >
+                  Grade 12
                 </Button>
               </div>
             </div>

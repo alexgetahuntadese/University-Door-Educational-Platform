@@ -49,6 +49,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Applying user data:", { authUser, userProfile });
       setUser(authUser);
       setProfile(userProfile);
+      console.log("State updated - user:", authUser, "profile:", userProfile);
 
       if (authUser.user_metadata?.name) {
         updateStudentName(authUser.user_metadata.name);
@@ -139,12 +140,16 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     signIn: async (phone: string, password: string) => {
       try {
+        console.log("AuthContext.signIn called");
         const session = await localAuthService.signIn({ phone, password });
+        console.log("Session from localAuthService:", session);
         if (session?.session?.user && session?.session?.profile) {
           const userProfile = await applyUserData(session.session.user, session.session.profile);
+          console.log("User profile applied:", userProfile);
           checkInactiveAccount(userProfile);
           return userProfile;
         }
+        console.log("No session or profile found");
         return null;
       } catch (error) {
         console.error("Sign in error:", error);

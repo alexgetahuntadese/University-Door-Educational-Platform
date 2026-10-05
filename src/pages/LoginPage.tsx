@@ -17,14 +17,21 @@ const LoginPage = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/grades");
+    console.log("LoginPage useEffect - isAuthenticated:", isAuthenticated, "profile:", profile);
+    if (isAuthenticated && profile) {
+      const role = profile?.preferences?.role;
+      console.log("Redirecting authenticated user, role:", role);
+      if (role === 'teacher' || role === 'admin') {
+        navigate("/teachers");
+      } else {
+        navigate("/grades");
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, profile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!phone || !password) {
       toast.error("Please enter phone number and password");
       return;
@@ -35,21 +42,18 @@ const LoginPage = () => {
       const profile = await signIn(phone, password);
       console.log("Login successful, profile:", profile);
       toast.success("Signed in successfully!");
-      
-      // Small delay to ensure auth state is updated
-      setTimeout(() => {
-        // Navigate based on role
-        const role = profile?.preferences?.role;
-        console.log("User role:", role);
-        
-        if (role === 'teacher' || role === 'admin') {
-          console.log("Navigating to teacher dashboard");
-          navigate("/teachers");
-        } else {
-          console.log("Navigating to grades");
-          navigate("/grades");
-        }
-      }, 300);
+
+      // Redirect immediately after successful login
+      const role = profile?.preferences?.role;
+      console.log("User role:", role);
+
+      if (role === 'teacher' || role === 'admin') {
+        console.log("Navigating to teacher dashboard");
+        navigate("/teachers");
+      } else {
+        console.log("Navigating to grades");
+        navigate("/grades");
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in");

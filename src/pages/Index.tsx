@@ -66,10 +66,9 @@ const menuItems: MenuDef[] = [
   },
   {
     title: "Exam Room",
-    route: EXAM_TOGETHER_URL,
-    description: "Timed practice on our Exam Together companion app.",
+    route: "/exam-room",
+    description: "Timed practice on our Exam Room.",
     icon: DoorOpen,
-    external: true,
     gridClass: "lg:col-span-2 min-h-[200px]",
     surface:
       "border-rose-500/40 bg-gradient-to-br from-rose-500/18 via-slate-950/90 to-slate-950 hover:border-rose-400/55",
@@ -100,7 +99,7 @@ const PAGE_BG = "#10081f"; /* deep violet base — matches predicted tile */
 const fadeUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 
 const Index = () => {
-  const { isTeacher, isAdmin } = useAuth();
+  const { isTeacher, isAdmin, isAuthenticated } = useAuth();
   const items = isTeacher || isAdmin
     ? [
         ...(isAdmin
@@ -130,6 +129,20 @@ const Index = () => {
         ...menuItems,
       ]
     : menuItems;
+
+  const itemsWithProfile = isAuthenticated
+    ? [
+        {
+          title: "Profile",
+          route: "/profile",
+          description: "View and update your account details.",
+          icon: Users,
+          gridClass: "lg:col-span-2 min-h-[200px]",
+          surface: "border-sky-500/35 bg-gradient-to-br from-sky-500/20 via-slate-950/80 to-slate-950 hover:border-sky-400/55 hover:shadow-sky-500/15",
+        },
+        ...items,
+      ]
+    : items;
 
   return (
     <div
@@ -323,7 +336,7 @@ const Index = () => {
                     Choose your path
                   </h2>
                   <p className="mt-2 max-w-lg text-sm text-white/45 md:text-base">
-                    Tiles open the matching area of the app. Exam Room opens our companion site in this tab.
+                    Tiles open the matching area of the app.
                   </p>
                 </div>
                 <div className="hidden items-center gap-2 text-xs text-white/35 md:flex">
@@ -333,7 +346,7 @@ const Index = () => {
               </motion.div>
 
               <div className="grid auto-rows-min grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
-                {items.map((item, index) => {
+                {itemsWithProfile.map((item, index) => {
                   const Icon = item.icon;
                   const isPredicted = item.cardVariant === "predicted";
                   const inner = (

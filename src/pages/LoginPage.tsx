@@ -36,17 +36,20 @@ const LoginPage = () => {
       console.log("Login successful, profile:", profile);
       toast.success("Signed in successfully!");
       
-      // Navigate based on role
-      const role = profile?.preferences?.role;
-      console.log("User role:", role);
-      
-      if (role === 'teacher' || role === 'admin') {
-        console.log("Navigating to teacher dashboard");
-        navigate("/teachers");
-      } else {
-        console.log("Navigating to grades");
-        navigate("/grades");
-      }
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        // Navigate based on role
+        const role = profile?.preferences?.role;
+        console.log("User role:", role);
+        
+        if (role === 'teacher' || role === 'admin') {
+          console.log("Navigating to teacher dashboard");
+          navigate("/teachers");
+        } else {
+          console.log("Navigating to grades");
+          navigate("/grades");
+        }
+      }, 100);
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in");

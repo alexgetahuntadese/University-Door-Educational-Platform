@@ -184,7 +184,13 @@ const TeachersDashboard = () => {
     setCreateError('');
 
     try {
-      const token = session?.accessToken;
+      const token = localStorage.getItem('auth_token');
+      console.log('Creating student with token:', token ? '***' + token.slice(-4) : 'missing');
+      
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.');
+      }
+
       const response = await fetch('/api/auth/create-student', {
         method: 'POST',
         headers: {
@@ -195,6 +201,7 @@ const TeachersDashboard = () => {
       });
 
       const data = await response.json();
+      console.log('Create student response:', response.status, data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to create student account');
@@ -204,6 +211,7 @@ const TeachersDashboard = () => {
       setNewStudent({ fullName: '', phone: '', password: '', stream: 'natural' });
       alert('Student account created successfully!');
     } catch (error) {
+      console.error('Create student error:', error);
       setCreateError(error instanceof Error ? error.message : 'Failed to create student account');
     } finally {
       setIsCreating(false);

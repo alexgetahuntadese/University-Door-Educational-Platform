@@ -103,14 +103,30 @@ const Index = () => {
   const { isTeacher, isAdmin } = useAuth();
   const items = isTeacher || isAdmin
     ? [
-        {
-          title: "Teachers",
-          route: "/teachers",
-          description: "Manage students and create student accounts.",
-          icon: Users,
-          gridClass: "lg:col-span-2 min-h-[200px]",
-          surface: "border-indigo-500/35 bg-gradient-to-br from-indigo-500/20 via-slate-950/80 to-slate-950 hover:border-indigo-400/55 hover:shadow-indigo-500/15",
-        },
+        ...(isAdmin
+          ? [
+              {
+                title: "Admin",
+                route: "/admin",
+                description: "Create teachers and student accounts.",
+                icon: Users,
+                gridClass: "lg:col-span-2 min-h-[200px]",
+                surface: "border-red-500/35 bg-gradient-to-br from-red-500/20 via-slate-950/80 to-slate-950 hover:border-red-400/55 hover:shadow-red-500/15",
+              },
+            ]
+          : []),
+        ...(isTeacher
+          ? [
+              {
+                title: "Teachers",
+                route: "/teachers",
+                description: "Manage students and create student accounts.",
+                icon: Users,
+                gridClass: "lg:col-span-2 min-h-[200px]",
+                surface: "border-indigo-500/35 bg-gradient-to-br from-indigo-500/20 via-slate-950/80 to-slate-950 hover:border-indigo-400/55 hover:shadow-indigo-500/15",
+              },
+            ]
+          : []),
         ...menuItems,
       ]
     : menuItems;

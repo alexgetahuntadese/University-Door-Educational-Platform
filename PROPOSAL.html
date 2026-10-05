@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethiopian Matric Exam Preparation Platform - Proposal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #333;
+        }
+        h1 {
+            color: #6366f1;
+            border-bottom: 3px solid #6366f1;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #4f46e5;
+            margin-top: 30px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #6366f1;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+        .highlight {
+            background-color: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        @media print {
+            body {
+                padding: 0;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            table {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Ethiopian Matric Exam Preparation Platform</h1>
+    <h2>Technical & Financial Proposal</h2>
+
+    <hr style="margin: 30px 0;">
+
+    <h2>Executive Summary</h2>
+    <p>SuccessDoor is a comprehensive Ethiopian University Entrance Exam (EUEE) preparation platform designed for Grade 9-12 students. The platform provides access to past papers, quizzes, notes, and practice tests to improve exam performance.</p>
+    <p><strong>Total Estimated Cost: <span class="highlight">$1,500 - $2,500 USD</span></strong></p>
+
+    <h2>1. Technical Specifications</h2>
+
+    <h3>1.1 Technology Stack</h3>
+    <h4>Frontend</h4>
+    <ul>
+        <li><strong>Framework</strong>: React 18 with TypeScript</li>
+        <li><strong>Build Tool</strong>: Vite 7.3</li>
+        <li><strong>UI Components</strong>: Radix UI + Tailwind CSS</li>
+        <li><strong>State Management</strong>: React Context API</li>
+        <li><strong>Routing</strong>: React Router DOM</li>
+        <li><strong>Icons</strong>: Lucide React</li>
+        <li><strong>Animations</strong>: Framer Motion</li>
+    </ul>
+
+    <h4>Backend</h4>
+    <ul>
+        <li><strong>Runtime</strong>: Node.js</li>
+        <li><strong>Database</strong>: SQLite (better-sqlite3)</li>
+        <li><strong>Authentication</strong>: JWT (JSON Web Tokens)</li>
+        <li><strong>Password Hashing</strong>: bcryptjs</li>
+        <li><strong>API</strong>: Express.js</li>
+    </ul>
+
+    <h4>Deployment Options</h4>
+    <ul>
+        <li><strong>Option A (Low Cost)</strong>: Vercel (Frontend) + VPS/Cloud (Backend) - ~$15/month</li>
+        <li><strong>Option B (Free Development)</strong>: Local hosting during development</li>
+    </ul>
+
+    <h3>1.2 System Architecture</h3>
+    <pre>
+┌─────────────────┐
+│   Frontend      │
+│   (React/Vite)  │
+└────────┬────────┘
+         │ HTTP/REST API
+         ▼
+┌─────────────────┐
+│   Backend       │
+│   (Express)     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   SQLite DB     │
+│   (auth.db)     │
+└─────────────────┘
+    </pre>
+
+    <h3>1.3 Key Features</h3>
+    <h4>Authentication System</h4>
+    <ul>
+        <li>Teacher account creation and management</li>
+        <li>Student account creation (teacher-only)</li>
+        <li>Role-based access control (student/teacher/admin)</li>
+        <li>JWT token-based authentication</li>
+        <li>Secure password hashing</li>
+        <li>Two-factor authentication (optional add-on)</li>
+        <li>Password reset via email/SMS</li>
+    </ul>
+
+    <h4>Learning Content</h4>
+    <ul>
+        <li>Grade selection (9, 10, 11, 12)</li>
+        <li>Subject-by-subject organization</li>
+        <li>Chapter-based learning structure</li>
+        <li>Quiz system with difficulty levels (Easy, Medium, Hard)</li>
+        <li>2018 Predicted Matric questions</li>
+        <li>Past papers by year and stream</li>
+        <li>Video lessons and tutorials</li>
+        <li>Interactive diagrams and visualizations</li>
+        <li>Downloadable study materials (PDF, notes)</li>
+    </ul>
+
+    <h4>Teacher Dashboard</h4>
+    <ul>
+        <li>Student account management</li>
+        <li>Create student accounts with phone, password, stream</li>
+        <li>Monitor student progress in real-time</li>
+        <li>Stream filtering (Natural Science / Social Science)</li>
+        <li>Class-wide performance analytics</li>
+        <li>Identify struggling students</li>
+        <li>Assign homework and practice tests</li>
+        <li>Generate student reports</li>
+    </ul>
+
+    <h4>User Interface</h4>
+    <ul>
+        <li>Modern, responsive design</li>
+        <li>Dark theme with gradient backgrounds</li>
+        <li>Star field animation effects</li>
+        <li>Mobile-friendly layout</li>
+        <li>Fast loading times (code splitting)</li>
+        <li>Offline mode support (PWA)</li>
+        <li>Accessibility features (screen reader support)</li>
+    </ul>
+
+    <h3>1.4 Advanced Scenarios & Future Features</h3>
+
+    <h4>Scenario 1: AI-Powered Personalized Learning</h4>
+    <ul>
+        <li>Adaptive learning paths based on student performance</li>
+        <li>AI tutor for answering student questions</li>
+        <li>Personalized study recommendations</li>
+        <li>Predictive analytics for exam success probability</li>
+        <li>Smart question generation based on weak areas</li>
+    </ul>
+
+    <h4>Scenario 2: Gamification & Engagement</h4>
+    <ul>
+        <li>Points and badges for completing quizzes</li>
+        <li>Leaderboards (class-wide, school-wide, national)</li>
+        <li>Daily streaks and challenges</li>
+        <li>Achievement system</li>
+        <li>Virtual rewards and certificates</li>
+        <li>Progress celebrations and animations</li>
+    </ul>
+
+    <h4>Scenario 3: Social Learning & Collaboration</h4>
+    <ul>
+        <li>Study groups and peer learning</li>
+        <li>Discussion forums by subject</li>
+        <li>Question sharing and peer review</li>
+        <li>Live study sessions with teachers</li>
+        <li>Peer-to-peer mentoring</li>
+        <li>Collaborative problem solving</li>
+    </ul>
+
+    <h4>Scenario 4: Parent & Guardian Portal</h4>
+    <ul>
+        <li>Parent accounts linked to students</li>
+        <li>Weekly progress reports sent to parents</li>
+        <li>Attendance tracking</li>
+        <li>Homework completion monitoring</li>
+        <li>Teacher-parent communication channel</li>
+        <li>Alert system for performance drops</li>
+    </ul>
+
+    <h4>Scenario 5: Career Guidance & University Prep</h4>
+    <ul>
+        <li>Career assessment and matching</li>
+        <li>University program recommendations</li>
+        <li>Scholarship information portal</li>
+        <li>Application timeline tracking</li>
+        <li>Interview preparation materials</li>
+        <li>Career exploration resources</li>
+    </ul>
+
+    <h4>Scenario 6: Offline & Low-Bandwidth Support</h4>
+    <ul>
+        <li>Progressive Web App (PWA) capabilities</li>
+        <li>Offline content download</li>
+        <li>Sync when connection restored</li>
+        <li>Low-bandwidth mode for slow internet</li>
+        <li>SMS-based quiz delivery</li>
+        <li>WhatsApp integration for notifications</li>
+    </ul>
+
+    <h4>Scenario 7: School & District Integration</h4>
+    <ul>
+        <li>School-wide administration dashboard</li>
+        <li>District-level analytics and reporting</li>
+        <li>Bulk student import from school systems</li>
+        <li>Standardized test integration</li>
+        <li>Curriculum alignment tools</li>
+        <li>Teacher training modules</li>
+    </ul>
+
+    <h4>Scenario 8: Advanced Analytics & Reporting</h4>
+    <ul>
+        <li>Real-time performance dashboards</li>
+        <li>Subject-wise strength/weakness analysis</li>
+        <li>Time-spent analytics per chapter</li>
+        <li>Comparative performance against peers</li>
+        <li>Predictive scoring for matric exams</li>
+        <li>Exportable reports (PDF, Excel)</li>
+        <li>Data visualization tools</li>
+    </ul>
+
+    <h4>Scenario 9: Mobile-First Experience</h4>
+    <ul>
+        <li>Native mobile apps (iOS & Android)</li>
+        <li>Push notifications for assignments</li>
+        <li>Touch-optimized interface</li>
+        <li>Voice-enabled search</li>
+        <li>Camera integration for document scanning</li>
+        <li>Offline-first architecture</li>
+    </ul>
+
+    <h4>Scenario 10: Content Management System</h4>
+    <ul>
+        <li>Easy content upload for teachers</li>
+        <li>Rich text editor for lesson creation</li>
+        <li>Video hosting and streaming</li>
+        <li>Interactive quiz builder</li>
+        <li>Content version control</li>
+        <li>Collaborative content creation</li>
+        <li>Content marketplace for sharing</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>2. Financial Breakdown</h2>
+
+    <h3>2.1 Development Costs</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Phase</th>
+                <th>Hours</th>
+                <th>Rate ($/hr)</th>
+                <th>Cost (USD)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="4"><strong>Phase 1: Foundation</strong></td>
+            </tr>
+            <tr>
+                <td>Project setup & architecture</td>
+                <td>8</td>
+                <td>25</td>
+                <td>200</td>
+            </tr>
+            <tr>
+                <td>Authentication system</td>
+                <td>12</td>
+                <td>25</td>
+                <td>300</td>
+            </tr>
+            <tr>
+                <td>Database design</td>
+                <td>6</td>
+                <td>25</td>
+                <td>150</td>
+            </tr>
+            <tr>
+                <td><strong>Subtotal Phase 1</strong></td>
+                <td><strong>26</strong></td>
+                <td></td>
+                <td><strong>650</strong></td>
+            </tr>
+            <tr>
+                <td colspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="4"><strong>Phase 2: Core Features</strong></td>
+            </tr>
+            <tr>
+                <td>Grade/Subject/Chapter structure</td>
+                <td>10</td>
+                <td>25</td>
+                <td>250</td>
+            </tr>
+            <tr>
+                <td>Quiz system</td>
+                <td>15</td>
+                <td>25</td>
+                <td>375</td>
+            </tr>
+            <tr>
+                <td>Notes & content pages</td>
+                <td>8</td>
+                <td>25</td>
+                <td>200</td>
+            </tr>
+            <tr>
+                <td>Teacher dashboard</td>
+                <td>10</td>
+                <td>25</td>
+                <td>250</td>
+            </tr>
+            <tr>
+                <td><strong>Subtotal Phase 2</strong></td>
+                <td><strong>43</strong></td>
+                <td></td>
+                <td><strong>1,075</strong></td>
+            </tr>
+            <tr>
+                <td colspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="4"><strong>Phase 3: Polish & Deploy</strong></td>
+            </tr>
+            <tr>
+                <td>UI/UX improvements</td>
+                <td>8</td>
+                <td>25</td>
+                <td>200</td>
+            </tr>
+            <tr>
+                <td>Testing & bug fixes</td>
+                <td>6</td>
+                <td>25</td>
+                <td>150</td>
+            </tr>
+            <tr>
+                <td>Deployment setup</td>
+                <td>4</td>
+                <td>25</td>
+                <td>100</td>
+            </tr>
+            <tr>
+                <td>Documentation</td>
+                <td>4</td>
+                <td>25</td>
+                <td>100</td>
+            </tr>
+            <tr>
+                <td><strong>Subtotal Phase 3</strong></td>
+                <td><strong>22</strong></td>
+                <td></td>
+                <td><strong>550</strong></td>
+            </tr>
+            <tr>
+                <td colspan="4"></td>
+            </tr>
+            <tr>
+                <td><strong>Total Development</strong></td>
+                <td><strong>91</strong></td>
+                <td></td>
+                <td><strong>$2,275</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2.2 Ongoing Costs (Monthly)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Provider</th>
+                <th>Cost (USD/month)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Frontend Hosting</td>
+                <td>Vercel (Hobby)</td>
+                <td>$0 (free tier)</td>
+            </tr>
+            <tr>
+                <td>Backend Hosting</td>
+                <td>DigitalOcean (Droplet)</td>
+                <td>$6-12</td>
+            </tr>
+            <tr>
+                <td>Domain Name</td>
+                <td>Namecheap/GoDaddy</td>
+                <td>$10-15/year</td>
+            </tr>
+            <tr>
+                <td>SSL Certificate</td>
+                <td>Let's Encrypt</td>
+                <td>Free</td>
+            </tr>
+            <tr>
+                <td><strong>Total Monthly</strong></td>
+                <td></td>
+                <td><strong>$6-12</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2.3 Cost-Saving Options</h3>
+    <h4>Option 1: MVP Launch - $1,500</h4>
+    <ul>
+        <li>Core authentication only</li>
+        <li>Basic grade/subject structure</li>
+        <li>Simple quiz system</li>
+        <li>No advanced analytics</li>
+        <li>60 hours of development</li>
+    </ul>
+
+    <h4>Option 2: Standard Launch - $2,275</h4>
+    <ul>
+        <li>Full authentication system</li>
+        <li>Complete grade/subject/chapter structure</li>
+        <li>Quiz with difficulty levels</li>
+        <li>Teacher dashboard</li>
+        <li>Student progress tracking</li>
+        <li>90 hours of development</li>
+    </ul>
+
+    <h4>Option 3: Premium Launch - $3,500</h4>
+    <ul>
+        <li>All Standard features</li>
+        <li>Advanced analytics</li>
+        <li>Mobile app (React Native)</li>
+        <li>Payment integration</li>
+        <li>140 hours of development</li>
+    </ul>
+
+    <h4>Option 4: Enterprise Platform - $8,000 - $12,000</h4>
+    <ul>
+        <li>All Premium features</li>
+        <li>AI-powered personalized learning</li>
+        <li>Gamification system</li>
+        <li>Social learning features</li>
+        <li>Parent portal</li>
+        <li>Career guidance module</li>
+        <li>Offline/low-bandwidth support</li>
+        <li>School/district integration</li>
+        <li>Content management system</li>
+        <li>350-500 hours of development</li>
+    </ul>
+
+    <h3>2.4 Future Feature Pricing (Add-ons)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>Estimated Cost</th>
+                <th>Development Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>AI Personalized Learning</td>
+                <td>$2,000-3,000</td>
+                <td>80-120 hours</td>
+            </tr>
+            <tr>
+                <td>Gamification System</td>
+                <td>$1,500-2,000</td>
+                <td>60-80 hours</td>
+            </tr>
+            <tr>
+                <td>Social Learning (Forums, Groups)</td>
+                <td>$1,800-2,500</td>
+                <td>70-100 hours</td>
+            </tr>
+            <tr>
+                <td>Parent Portal</td>
+                <td>$1,200-1,800</td>
+                <td>50-70 hours</td>
+            </tr>
+            <tr>
+                <td>Career Guidance Module</td>
+                <td>$1,000-1,500</td>
+                <td>40-60 hours</td>
+            </tr>
+            <tr>
+                <td>Offline/Low-Bandwidth Support</td>
+                <td>$1,500-2,000</td>
+                <td>60-80 hours</td>
+            </tr>
+            <tr>
+                <td>School/District Integration</td>
+                <td>$2,500-3,500</td>
+                <td>100-140 hours</td>
+            </tr>
+            <tr>
+                <td>Advanced Analytics Dashboard</td>
+                <td>$1,800-2,500</td>
+                <td>70-100 hours</td>
+            </tr>
+            <tr>
+                <td>Mobile Apps (iOS + Android)</td>
+                <td>$3,000-4,000</td>
+                <td>120-160 hours</td>
+            </tr>
+            <tr>
+                <td>Content Management System</td>
+                <td>$2,000-3,000</td>
+                <td>80-120 hours</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>3. Timeline</h2>
+
+    <h3>Phase 1: Foundation (Week 1-2)</h3>
+    <ul>
+        <li>Day 1-3: Project setup, React + Vite configuration</li>
+        <li>Day 4-6: Authentication system (login, register, JWT)</li>
+        <li>Day 7-8: Database design and setup</li>
+        <li>Day 9-10: Testing authentication flow</li>
+    </ul>
+
+    <h3>Phase 2: Core Features (Week 3-5)</h3>
+    <ul>
+        <li>Day 11-15: Grade/Subject/Chapter structure</li>
+        <li>Day 16-20: Quiz system implementation</li>
+        <li>Day 21-24: Notes and content pages</li>
+        <li>Day 25-28: Teacher dashboard development</li>
+        <li>Day 29-30: Student creation and management</li>
+    </ul>
+
+    <h3>Phase 3: Polish & Deploy (Week 6)</h3>
+    <ul>
+        <li>Day 31-34: UI/UX improvements and animations</li>
+        <li>Day 35-37: Testing and bug fixes</li>
+        <li>Day 38-39: Deployment to production</li>
+        <li>Day 40: Documentation and handover</li>
+    </ul>
+
+    <p><strong>Total Duration: 6 weeks (40 working days)</strong></p>
+
+    <h2>4. Deliverables</h2>
+
+    <h3>4.1 Source Code</h3>
+    <ul>
+        <li>Complete frontend React application</li>
+        <li>Complete backend Express server</li>
+        <li>SQLite database schema</li>
+        <li>Authentication system</li>
+        <li>All components and pages</li>
+    </ul>
+
+    <h3>4.2 Documentation</h3>
+    <ul>
+        <li>Setup guide (installation, environment variables)</li>
+        <li>User manual (student and teacher guides)</li>
+        <li>API documentation</li>
+        <li>Database schema documentation</li>
+        <li>Deployment guide</li>
+    </ul>
+
+    <h3>4.3 Training</h3>
+    <ul>
+        <li>2 hours of training for administrators</li>
+        <li>Video tutorials for teachers</li>
+        <li>Student onboarding guide</li>
+    </ul>
+
+    <h3>4.4 Support</h3>
+    <ul>
+        <li>30 days of post-launch support</li>
+        <li>Bug fixes for critical issues</li>
+        <li>Minor adjustments and improvements</li>
+    </ul>
+
+    <h2>5. Payment Terms</h2>
+
+    <h3>Option A: Milestone-Based Payment</h3>
+    <ul>
+        <li><strong>25%</strong> upfront ($568)</li>
+        <li><strong>25%</strong> after Phase 1 ($568)</li>
+        <li><strong>25%</strong> after Phase 2 ($568)</li>
+        <li><strong>25%</strong> on completion ($571)</li>
+    </ul>
+
+    <h3>Option B: Fixed Price Payment</h3>
+    <ul>
+        <li><strong>80%</strong> upfront ($1,820)</li>
+        <li><strong>20%</strong> on completion ($455)</li>
+    </ul>
+
+    <h3>Option C: Monthly Payment</h3>
+    <ul>
+        <li><strong>$400/month</strong> for 6 months</li>
+    </ul>
+
+    <h2>6. Assumptions & Exclusions</h2>
+
+    <h3>Included</h3>
+    <ul>
+        <li>All listed features and functionality</li>
+        <li>Responsive design for mobile/tablet/desktop</li>
+        <li>Basic animations and transitions</li>
+        <li>Authentication and authorization</li>
+        <li>Teacher dashboard for student management</li>
+    </ul>
+
+    <h3>Excluded</h3>
+    <ul>
+        <li>Content creation (questions, notes, materials)</li>
+        <li>Advanced analytics and reporting</li>
+        <li>Mobile app development</li>
+        <li>Third-party integrations (payment gateways, SMS)</li>
+        <li>Custom domain purchase</li>
+        <li>Hosting costs (paid separately)</li>
+    </ul>
+
+    <h3>Optional Add-ons</h3>
+    <ul>
+        <li>Content creation services: $500-1,000</li>
+        <li>Mobile app (iOS + Android): $2,000-3,000</li>
+        <li>Advanced analytics dashboard: $500</li>
+        <li>SMS notifications: $200 setup + monthly fees</li>
+        <li>Payment integration: $300</li>
+    </ul>
+
+    <h2>7. Risk Assessment</h2>
+
+    <h3>Technical Risks</h3>
+    <ul>
+        <li><strong>Low</strong>: Modern, proven technology stack</li>
+        <li><strong>Mitigation</strong>: Regular testing, code reviews</li>
+    </ul>
+
+    <h3>Timeline Risks</h3>
+    <ul>
+        <li><strong>Low</strong>: 6-week buffer included</li>
+        <li><strong>Mitigation</strong>: Weekly progress updates</li>
+    </ul>
+
+    <h3>Budget Risks</h3>
+    <ul>
+        <li><strong>Low</strong>: Fixed price, milestone-based payments</li>
+        <li><strong>Mitigation</strong>: Clear scope definition</li>
+    </ul>
+
+    <h2>8. Why Choose This Solution?</h2>
+
+    <h3>Cost-Effective</h3>
+    <ul>
+        <li>Low monthly operating costs ($6-12/month)</li>
+        <li>No expensive cloud infrastructure</li>
+        <li>Open-source technologies (no licensing fees)</li>
+    </ul>
+
+    <h3>Scalable</h3>
+    <ul>
+        <li>Can handle 1,000+ concurrent users</li>
+        <li>Easy to add features and content</li>
+        <li>Database can be upgraded to PostgreSQL if needed</li>
+    </ul>
+
+    <h3>User-Friendly</h3>
+    <ul>
+        <li>Modern, intuitive interface</li>
+        <li>Fast loading times</li>
+        <li>Works on all devices</li>
+    </ul>
+
+    <h3>Secure</h3>
+    <ul>
+        <li>JWT-based authentication</li>
+        <li>Password hashing</li>
+        <li>Role-based access control</li>
+        <li>No sensitive data exposure</li>
+    </ul>
+
+    <h2>9. Next Steps</h2>
+    <ol>
+        <li><strong>Review Proposal</strong>: Discuss requirements and budget</li>
+        <li><strong>Select Option</strong>: Choose MVP, Standard, or Premium package</li>
+        <li><strong>Sign Agreement</strong>: Formal contract with payment terms</li>
+        <li><strong>Kickoff Meeting</strong>: Project initiation and timeline confirmation</li>
+        <li><strong>Development</strong>: 6-week development cycle</li>
+        <li><strong>Testing & Launch</strong>: Quality assurance and deployment</li>
+        <li><strong>Handover</strong>: Documentation, training, and support</li>
+    </ol>
+
+    <h2>10. Contact Information</h2>
+    <p><strong>Project:</strong> Ethiopian Matric Exam Preparation Platform</p>
+    <p><strong>Proposal Date:</strong> January 2025</p>
+    <p><strong>Validity:</strong> 30 days</p>
+
+    <hr style="margin: 30px 0;">
+
+    <p><em>For questions or to proceed with this proposal, please contact.</em></p>
+    <p><em>This proposal is subject to change based on specific requirements and scope adjustments.</em></p>
+</body>
+</html>

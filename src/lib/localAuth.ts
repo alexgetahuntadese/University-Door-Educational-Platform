@@ -71,6 +71,16 @@ export const localAuthService = {
 
       const data = await response.json();
       console.log('Session data received:', data);
+      
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid session data received:', data);
+        localStorage.removeItem('auth_token');
+        return {
+          session: null,
+          profile: null,
+        };
+      }
+      
       const authUser = buildAuthUser(data);
       const userProfile = buildUserProfile(data);
 
@@ -107,6 +117,10 @@ export const localAuthService = {
       });
 
       const data = await response.json();
+
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response from server');
+      }
 
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
@@ -150,6 +164,10 @@ export const localAuthService = {
 
       const data = await response.json();
       console.log('Sign in response:', response.status, data);
+
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response from server');
+      }
 
       if (!response.ok) {
         throw new Error(data.message || 'Invalid phone or password');
@@ -200,6 +218,10 @@ export const localAuthService = {
       });
 
       const data = await response.json();
+
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response from server');
+      }
 
       if (!response.ok) {
         throw new Error(data.message || 'Profile update failed');

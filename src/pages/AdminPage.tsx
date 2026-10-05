@@ -41,7 +41,12 @@ const AdminPage = () => {
         is_active: true,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('users_phone_key') || error.message.includes('duplicate')) {
+          throw new Error('A student with that phone number already exists.');
+        }
+        throw new Error(error.message);
+      }
 
       toast.success(`${role} account created for ${email}`);
       setName(''); setEmail(''); setPhone(''); setGrade(''); setSchool(''); setPassword('');
@@ -128,8 +133,8 @@ const AdminPage = () => {
             )}
           </Button>
 
-          <Button variant="outline" onClick={() => navigate('/')} className="w-full border-white/30 text-white">
-            Back to Home
+          <Button variant="outline" onClick={() => navigate('/grades')} className="w-full border-white/30 text-white">
+            Back to App
           </Button>
         </CardContent>
       </Card>

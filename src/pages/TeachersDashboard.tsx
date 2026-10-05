@@ -207,7 +207,12 @@ const TeachersDashboard = () => {
         is_active: true,
       });
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (error.message.includes('users_phone_key') || error.message.includes('duplicate')) {
+          throw new Error('A student with that phone number already exists.');
+        }
+        throw new Error(error.message);
+      }
 
       setIsCreateModalOpen(false);
       setNewStudent({ fullName: '', phone: '', password: '', stream: 'natural' });

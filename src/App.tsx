@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/i18n/LanguageContext";
-import AuthProvider from "@/contexts/AuthContext";
+import AuthProvider from "@/contexts/AuthContextSupabase";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";

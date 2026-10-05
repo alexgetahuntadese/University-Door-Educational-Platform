@@ -7,7 +7,11 @@ import type {
   UserProfile,
 } from '@/lib/auth/types';
 
-const API_BASE = '/api/auth';
+const AUTH_ENDPOINT = import.meta.env.VITE_AUTH_ENDPOINT_URL || '/api/auth';
+const AUTH_ENDPOINT = AUTH_ENDPOINT.endsWith('/auth') ? AUTH_ENDPOINT : `${AUTH_ENDPOINT}/auth`;
+
+console.log('AUTH_ENDPOINT:', AUTH_ENDPOINT);
+console.log('AUTH_ENDPOINT:', AUTH_ENDPOINT);
 
 // Helper to convert backend response to AuthUser
 const buildAuthUser = (data: any): AuthUser => ({
@@ -54,7 +58,7 @@ export const localAuthService = {
 
     try {
       console.log('Fetching session with token:', token ? '***' + token.slice(-4) : 'missing');
-      const response = await fetch(`${API_BASE}/me`, {
+      const response = await fetch(`${AUTH_ENDPOINT}/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -116,7 +120,7 @@ export const localAuthService = {
 
   async register(input: RegisterInput): Promise<AuthSessionResponse> {
     try {
-      const response = await fetch(`${API_BASE}/register`, {
+      const response = await fetch(`${AUTH_ENDPOINT}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +173,7 @@ export const localAuthService = {
   async signIn(input: SignInInput): Promise<AuthSessionResponse> {
     try {
       console.log('Attempting sign in with phone:', input.phone);
-      const response = await fetch(`${API_BASE}/login`, {
+      const response = await fetch(`${AUTH_ENDPOINT}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -230,7 +234,7 @@ export const localAuthService = {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/me`, {
+      const response = await fetch(`${AUTH_ENDPOINT}/me`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -280,7 +284,7 @@ export const localAuthService = {
       const token = localStorage.getItem('auth_token');
       
       if (token) {
-        await fetch(`${API_BASE}/logout`, {
+        await fetch(`${AUTH_ENDPOINT}/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

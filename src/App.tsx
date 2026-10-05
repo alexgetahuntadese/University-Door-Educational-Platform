@@ -269,9 +269,11 @@ const App = () => (
                   </RequireAuth>
                 } />
                 <Route path="/teachers" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <TeachersDashboard />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <TeachersDashboard />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/ethiopian-matric-exam" element={
                   <RequireAuth>

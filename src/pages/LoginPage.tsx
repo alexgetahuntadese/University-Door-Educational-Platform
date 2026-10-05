@@ -49,7 +49,7 @@ const LoginPage = () => {
           console.log("Navigating to grades");
           navigate("/grades");
         }
-      }, 100);
+      }, 300);
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in");

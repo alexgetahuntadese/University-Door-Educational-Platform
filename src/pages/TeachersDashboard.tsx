@@ -132,7 +132,7 @@ const TeachersDashboard = () => {
 
   useEffect(() => {
     if (!isLoading && !isTeacher) {
-      navigate('/');
+      navigate('/login');
     }
   }, [isTeacher, isLoading, navigate]);
 

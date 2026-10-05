@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "setup-demo": "node scripts/setup-demo.js"
+    "setup-demo": "node scripts/setup-turso.js"
   },
   "dependencies": {
+    "@libsql/client": "^0.14.0",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^12.8.0",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",

@@ -89,14 +89,23 @@ const requestJson = async <T>(path: string, init: RequestInit = {}) => {
   
   console.log(`[API] ${init.method || 'GET'} ${url}`);
   
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init.headers ?? {}),
-    },
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    console.error('[API] Network error:', error);
+    if (baseUrl === '/api') {
+      throw new Error('Cannot connect to backend server. Please ensure the backend is running locally on port 5000.');
+    }
+    throw new Error(`Cannot connect to backend server at ${baseUrl}. Please check if the backend is deployed and accessible.`);
+  }
 
   console.log(`[API] Response status: ${response.status} ${response.statusText}`);
 

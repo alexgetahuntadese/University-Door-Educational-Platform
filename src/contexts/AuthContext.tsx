@@ -11,6 +11,7 @@ import {
   getPaymentStatus,
   hasPremiumPreferences,
   isAdminPreferences,
+  isTeacherPreferences,
 } from "@/lib/authRoles";
 import { INACTIVE_ACCOUNT_NOTICE_KEY } from "@/lib/authStorage";
 import { parseAuthService } from "@/integrations/parse/parseAuth";
@@ -118,6 +119,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     profile,
     isAuthenticated: Boolean(user),
     isAdmin: isAdminPreferences(profile?.preferences as any),
+    isTeacher: isTeacherPreferences(profile?.preferences as any),
     hasPremiumAccess: hasPremiumPreferences(profile?.preferences as any),
     paymentStatus: getPaymentStatus(profile?.preferences as any),
     isLoading,

@@ -14,6 +14,7 @@ export type AuthContextValue = {
   profile: UserProfile | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isTeacher: boolean;
   hasPremiumAccess: boolean;
   paymentStatus: string;
   isLoading: boolean;

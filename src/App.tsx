@@ -7,10 +7,9 @@ import { NotificationPermissionRequest } from "@/components/NotificationPermissi
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import AuthProvider from "@/contexts/AuthContext";
+import RequireAuth from "@/components/auth/RequireAuth";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -36,6 +35,7 @@ const BookSubjectsPage = lazy(() => import("./pages/BookSubjectsPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignUpPage = lazy(() => import("./pages/SignUpPage"));
+const RoleSelectionPage = lazy(() => import("./pages/RoleSelectionPage"));
 const PredictedMatricPage = lazy(() => import("./pages/PredictedMatricPage"));
 const PredictedMatricQuizPage = lazy(() => import("./pages/PredictedMatricQuizPage"));
 const TeachersDashboard = lazy(() => import("./pages/TeachersDashboard"));
@@ -96,8 +96,6 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Analytics />
-              <SpeedInsights />
               <Routes>
                 <Route path="/" element={
                   <Suspense fallback={<PageLoader />}>
@@ -105,53 +103,71 @@ const App = () => (
                   </Suspense>
                 } />
                 <Route path="/grades" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <GradesPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <GradesPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/grade/:grade" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <GradeSelection />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <GradeSelection />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/grade/:grade/subjects" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <SubjectsPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <SubjectsPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route
                   path="/grade/:grade/subject/:subject"
                   element={<Navigate to="chapters" replace />}
                 />
                 <Route path="/grade/:grade/subject/:subject/chapters" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <ChaptersPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <ChaptersPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/grade/:grade/subject/:subject/chapter/:chapterId/difficulty/:difficulty/quiz" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <QuizPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <QuizPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/career-simulator" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <CareerSimulatorPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <CareerSimulatorPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/performance" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <PerformancePage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <PerformancePage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/profile" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <ProfilePage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <ProfilePage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/matric" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <MatricExamPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <MatricExamPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/exam-room" element={
                   <Suspense fallback={<PageLoader />}>
@@ -201,6 +217,11 @@ const App = () => (
                 <Route path="/contact" element={
                   <Suspense fallback={<PageLoader />}>
                     <ContactPage />
+                  </Suspense>
+                } />
+                <Route path="/select-role" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <RoleSelectionPage />
                   </Suspense>
                 } />
                 <Route path="/login" element={

@@ -1,12 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Filter, TrendingUp, TrendingDown, BookOpen, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Users, Search, Filter, TrendingUp, TrendingDown, BookOpen, CheckCircle, XCircle, ArrowLeft, Plus } from 'lucide-react';
 import TopBar from '@/components/TopBar';
 import StarField from '@/components/StarField';
-import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/auth-context';
 
 // Data structure for student progress
 interface StudentSubjectPerformance {
@@ -118,9 +121,28 @@ const mockStudents: StudentProgress[] = [
 
 const TeachersDashboard = () => {
   const navigate = useNavigate();
+  const { isTeacher, isLoading, session } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStream, setFilterStream] = useState<'all' | 'natural' | 'social'>('all');
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newStudent, setNewStudent] = useState({ fullName: '', phone: '', password: '', stream: 'natural' as 'natural' | 'social' });
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+
+  useEffect(() => {
+    if (!isLoading && !isTeacher) {
+      navigate('/');
+    }
+  }, [isTeacher, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   const filteredStudents = useMemo(() => {
     return mockStudents.filter((student) => {
@@ -152,6 +174,42 @@ const TeachersDashboard = () => {
     return Math.round((correct / total) * 100);
   };
 
+  const handleCreateStudent = async () => {
+    if (!newStudent.fullName || !newStudent.phone || !newStudent.password) {
+      setCreateError('Please fill in all fields');
+      return;
+    }
+
+    setIsCreating(true);
+    setCreateError('');
+
+    try {
+      const token = session?.accessToken;
+      const response = await fetch('/api/auth/create-student', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(newStudent),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create student account');
+      }
+
+      setIsCreateModalOpen(false);
+      setNewStudent({ fullName: '', phone: '', password: '', stream: 'natural' });
+      alert('Student account created successfully!');
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : 'Failed to create student account');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 pt-14 px-4 pb-4 md:p-8 md:pt-14 overflow-hidden relative">
       <StarField />
@@ -176,6 +234,95 @@ const TeachersDashboard = () => {
             </div>
             <p className="text-white/50 text-sm">Monitor student progress on 2018 predicted questions</p>
           </div>
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Student
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white/[0.06] backdrop-blur-xl border-white/[0.1] text-white">
+              <DialogHeader>
+                <DialogTitle className="text-white">Create Student Account</DialogTitle>
+                <DialogDescription className="text-white/60">
+                  Enter the student's details to create a new account
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-white">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={newStudent.fullName}
+                    onChange={(e) => setNewStudent({ ...newStudent, fullName: e.target.value })}
+                    placeholder="Enter student's full name"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-white">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    value={newStudent.phone}
+                    onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                    placeholder="Enter phone number (e.g., 0912345678)"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-white">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newStudent.password}
+                    onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
+                    placeholder="Enter password (min 6 characters)"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="stream" className="text-white">Stream</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={newStudent.stream === 'natural' ? 'default' : 'outline'}
+                      onClick={() => setNewStudent({ ...newStudent, stream: 'natural' })}
+                      className={newStudent.stream === 'natural' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'border-white/20 text-white/70 hover:bg-white/10'}
+                    >
+                      Natural Science
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={newStudent.stream === 'social' ? 'default' : 'outline'}
+                      onClick={() => setNewStudent({ ...newStudent, stream: 'social' })}
+                      className={newStudent.stream === 'social' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : 'border-white/20 text-white/70 hover:bg-white/10'}
+                    >
+                      Social Science
+                    </Button>
+                  </div>
+                </div>
+                {createError && (
+                  <div className="text-red-400 text-sm">{createError}</div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="border-white/20 text-white/70 hover:bg-white/10"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateStudent}
+                  disabled={isCreating}
+                  className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+                >
+                  {isCreating ? 'Creating...' : 'Create Account'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats Overview */}

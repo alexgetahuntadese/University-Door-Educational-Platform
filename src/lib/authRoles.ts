@@ -18,6 +18,9 @@ export const getPreferenceRole = (preferences: Json | null | undefined) => {
 export const isAdminPreferences = (preferences: Json | null | undefined) =>
   getPreferenceRole(preferences) === "admin";
 
+export const isTeacherPreferences = (preferences: Json | null | undefined) =>
+  getPreferenceRole(preferences) === "teacher" || getPreferenceRole(preferences) === "admin";
+
 export const getPaymentStatus = (preferences: Json | null | undefined) => {
   const objectValue = asObject(preferences);
   const status = objectValue?.payment_status;

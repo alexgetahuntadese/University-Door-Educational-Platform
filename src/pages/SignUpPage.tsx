@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const SignUpPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!fullName || !phone || !password) {
       toast.error("Please fill in all fields");
       return;
@@ -48,89 +48,28 @@ const SignUpPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4">
       <Card className="w-full max-w-md bg-white/10 backdrop-blur-lg border-white/20">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl text-white">Create Account</CardTitle>
+          <CardTitle className="text-2xl text-white">Registration Disabled</CardTitle>
           <CardDescription className="text-white/70">
-            Start your learning journey today
+            Public registration is not available
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-white">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Enter your full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="0912345678"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-black font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Sign Up"
-              )}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-white/70">
+        <CardContent className="text-center space-y-4">
+          <div className="flex justify-center">
+            <AlertCircle className="h-16 w-16 text-yellow-400" />
+          </div>
+          <p className="text-white/80">
+            Student accounts can only be created by teachers. Please contact your teacher to get your login credentials.
+          </p>
+          <Button
+            onClick={() => navigate("/login")}
+            className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-black font-semibold"
+          >
+            Go to Sign In
+          </Button>
+          <p className="text-sm text-white/60">
             Already have an account?{" "}
             <Link to="/login" className="text-yellow-400 hover:underline">
-              Sign in
+              Sign in here
             </Link>
           </p>
         </CardContent>

@@ -91,12 +91,16 @@ const LoginPage = () => {
               )}
             </Button>
           </form>
-          <p className="mt-4 text-center text-white/70">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-yellow-400 hover:underline">
-              Sign up
-            </Link>
-          </p>
+          <div className="mt-4 space-y-2">
+            <p className="text-center text-white/70">
+              Need an account? Contact your teacher for credentials.
+            </p>
+            <p className="text-center text-sm">
+              <Link to="/teachers" className="text-white/60 hover:text-white underline">
+                Teacher Dashboard
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

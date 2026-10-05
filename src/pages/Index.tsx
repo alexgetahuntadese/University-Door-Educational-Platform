@@ -13,10 +13,12 @@ import {
   Phone,
   Sparkles,
   Trophy,
+  Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { EXAM_TOGETHER_URL } from "@/lib/examTogetherUrl";
 import { customerContacts } from "@/lib/contactsData";
+import StarField from "@/components/StarField";
 
 type MenuDef = {
   title: string;
@@ -101,6 +103,7 @@ const Index = () => {
       className="relative min-h-screen text-white"
       style={{ backgroundColor: PAGE_BG }}
     >
+      <StarField />
       {/* Atmosphere */}
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-violet-950/80 via-[#10081f] to-indigo-950" />
@@ -145,7 +148,7 @@ const Index = () => {
                 Contact
               </Link>
               <Link
-                to="/grades"
+                to="/login"
                 className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-md shadow-amber-900/30 transition-transform hover:scale-[1.02] sm:px-4 sm:text-sm"
               >
                 Start
@@ -178,10 +181,10 @@ const Index = () => {
                 </p>
                 <div className="mt-10 flex flex-wrap items-center gap-4">
                   <Link
-                    to="/grades"
+                    to="/login"
                     className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-xl transition-transform hover:scale-[1.02] hover:bg-amber-50"
                   >
-                    Enter grades
+                    Get Started
                     <ArrowUpRight className="h-4 w-4" aria-hidden />
                   </Link>
                   <Link
@@ -189,6 +192,53 @@ const Index = () => {
                     className="text-sm font-medium text-amber-200/90 underline decoration-amber-500/40 underline-offset-4 transition-colors hover:text-amber-100"
                   >
                     Go to Matric exams
+                  </Link>
+                </div>
+
+                {/* Role Selection Cards */}
+                <div className="mt-12 grid md:grid-cols-2 gap-6">
+                  <Link
+                    to="/login"
+                    className="group relative overflow-hidden rounded-2xl border border-cyan-500/35 bg-gradient-to-br from-cyan-500/20 via-slate-950/80 to-slate-950 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/55 hover:shadow-cyan-500/15"
+                  >
+                    <div className="pointer-events-none absolute -right-6 top-0 h-32 w-32 rounded-full blur-2xl bg-cyan-500/30 transition-opacity group-hover:opacity-100" />
+                    <div className="relative flex h-full flex-col">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-950/80 text-cyan-100 shadow-inner">
+                        <GraduationCap className="h-6 w-6" aria-hidden />
+                      </div>
+                      <div className="mt-4">
+                        <h3 className="text-xl font-semibold text-white">Student</h3>
+                        <p className="mt-2 text-sm text-white/50">
+                          Access learning materials, quizzes, and track your progress
+                        </p>
+                      </div>
+                      <div className="mt-4 flex items-center gap-2 text-cyan-300/70">
+                        <span className="text-sm font-medium">Enter as Student</span>
+                        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/login"
+                    className="group relative overflow-hidden rounded-2xl border border-violet-500/35 bg-gradient-to-br from-violet-500/20 via-slate-950/80 to-slate-950 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-400/55 hover:shadow-violet-500/15"
+                  >
+                    <div className="pointer-events-none absolute -right-6 top-0 h-32 w-32 rounded-full blur-2xl bg-violet-500/30 transition-opacity group-hover:opacity-100" />
+                    <div className="relative flex h-full flex-col">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-violet-300/30 bg-violet-950/80 text-violet-100 shadow-inner">
+                        <Users className="h-6 w-6" aria-hidden />
+                      </div>
+                      <div className="mt-4">
+                        <h3 className="text-xl font-semibold text-white">Teacher</h3>
+                        <p className="mt-2 text-sm text-white/50">
+                          Manage students, create accounts, and monitor progress
+                        </p>
+                      </div>
+                      <div className="mt-4 flex items-center gap-2 text-violet-300/70">
+                        <span className="text-sm font-medium">Enter as Teacher</span>
+                        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </div>
                   </Link>
                 </div>
               </motion.div>

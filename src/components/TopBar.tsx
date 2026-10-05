@@ -18,7 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 const TopBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { displayName, isAdmin, isAuthenticated, signOut } = useAuth();
+  const { displayName, isAdmin, isTeacher, isAuthenticated, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (path: string) => {
@@ -36,8 +36,8 @@ const TopBar = () => {
     { path: '/career-simulator', icon: Briefcase, label: 'Career' },
     { path: '/contact', icon: Phone, label: 'Contact' },
     ...(isAdmin ? [{ path: '/dashboard', icon: User, label: 'Dashboard' }] : []),
-    ...(isAuthenticated ? [{ path: '/teachers', icon: Users, label: 'Teachers' }] : []),
-  ], [isAdmin, isAuthenticated]);
+    ...(isTeacher ? [{ path: '/teachers', icon: Users, label: 'Teachers' }] : []),
+  ], [isAdmin, isTeacher]);
 
   const mobileAccountItems = useMemo(() => [
     ...(isAuthenticated ? [{ path: '/profile', icon: User, label: 'Profile' }] : []),

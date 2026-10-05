@@ -7,12 +7,15 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 5174,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
       },
+    },
+    hmr: {
+      overlay: false,
     },
   },
   plugins: [
@@ -21,7 +24,7 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   preview: {
     host: "::",
-    port: 8080,
+    port: 5173,
   },
   resolve: {
     alias: {
@@ -54,6 +57,9 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('date-fns') || id.includes('zod') || id.includes('cmdk')) {
               return 'utils';
             }
+            if (id.includes('lucide-react')) {
+              return 'icons';
+            }
           }
           // Split large data files into separate chunks
           if (id.includes('/data/')) {
@@ -77,7 +83,7 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    chunkSizeWarningLimit: 1500,
+    chunkSizeWarningLimit: 500,
     sourcemap: mode === 'development',
     target: 'esnext',
     minify: 'terser',
@@ -85,11 +91,14 @@ export default defineConfig(({ mode }) => ({
       compress: {
         drop_console: mode === 'production',
         drop_debugger: mode === 'production',
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
       },
     },
+    cssCodeSplit: true,
+    reportCompressedSize: true,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'lucide-react'],
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(mode),

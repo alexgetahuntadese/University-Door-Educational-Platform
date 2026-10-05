@@ -109,33 +109,32 @@ const requireAuth = (request, response, next) => {
   }
 }
 
-// Routes
-router.post('/register', (req, res) => {
+const requireTeacher = (request, response, next) => {
+  const token = getBearerToken(request)
+  if (!token) return response.status(401).json({ message: 'Authentication required.' })
   try {
-    const fullName = typeof req.body.fullName === 'string' ? req.body.fullName.trim() : ''
-    const phone = normalizePhoneNumber(req.body.phone)
-    const password = typeof req.body.password === 'string' ? req.body.password : ''
-
-    if (!fullName) return res.status(400).json({ message: 'Enter your full name.' })
-    if (!phone) return res.status(400).json({ message: 'Enter a valid phone number.' })
-    if (password.length < 6) return res.status(400).json({ message: 'Use a password with at least 6 characters.' })
-
-    const existing = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone)
-    if (existing) return res.status(409).json({ message: 'That phone number is already registered. Try signing in instead.' })
-
-    const passwordHash = hashPassword(password)
-    const insert = db.prepare(`
-      INSERT INTO users (phone, password_hash, name, preferences, last_login)
-      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `)
-    const result = insert.run(phone, passwordHash, fullName, JSON.stringify({ role: 'student' }))
+    const decoded = jwt.verify(token, JWT_SECRET)
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.sub)
+    if (!user) return response.status(401).json({ message: 'User not found.' })
     
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid)
-    return res.status(201).json(buildAuthResponse(user))
+    const preferences = user.preferences ? JSON.parse(user.preferences) : { role: 'student' }
+    const role = preferences.role || 'student'
+    
+    if (role !== 'teacher' && role !== 'admin') {
+      return response.status(403).json({ message: 'Teacher or admin access required.' })
+    }
+    
+    request.authUser = user
+    next()
   } catch (err) {
-    console.error('REGISTER ERROR:', err)
-    return res.status(500).json({ message: 'Server error: ' + err.message })
+    return response.status(401).json({ message: 'Your session is no longer valid. Sign in again.' })
   }
+}
+
+// Routes
+// Public registration disabled - only teachers can create student accounts
+router.post('/register', (req, res) => {
+  return res.status(403).json({ message: 'Public registration is disabled. Please contact your teacher to create an account.' })
 })
 
 router.post('/login', (req, res) => {
@@ -181,6 +180,39 @@ router.patch('/me', requireAuth, (req, res) => {
 
 router.post('/logout', (_req, res) => {
   res.json({ ok: true })
+})
+
+router.post('/create-student', requireTeacher, (req, res) => {
+  try {
+    const fullName = typeof req.body.fullName === 'string' ? req.body.fullName.trim() : ''
+    const phone = normalizePhoneNumber(req.body.phone)
+    const password = typeof req.body.password === 'string' ? req.body.password : ''
+    const stream = typeof req.body.stream === 'string' ? req.body.stream.trim() : ''
+
+    if (!fullName) return res.status(400).json({ message: 'Enter the student\'s full name.' })
+    if (!phone) return res.status(400).json({ message: 'Enter a valid phone number.' })
+    if (password.length < 6) return res.status(400).json({ message: 'Use a password with at least 6 characters.' })
+    if (!stream || (stream !== 'natural' && stream !== 'social')) {
+      return res.status(400).json({ message: 'Stream must be either "natural" or "social".' })
+    }
+
+    const existing = db.prepare('SELECT id FROM users WHERE phone = ?').get(phone)
+    if (existing) return res.status(409).json({ message: 'That phone number is already registered.' })
+
+    const passwordHash = hashPassword(password)
+    const preferences = JSON.stringify({ role: 'student', stream })
+    const insert = db.prepare(`
+      INSERT INTO users (phone, password_hash, name, preferences, last_login)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `)
+    const result = insert.run(phone, passwordHash, fullName, preferences)
+    
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid)
+    return res.status(201).json(buildAuthResponse(user))
+  } catch (err) {
+    console.error('CREATE STUDENT ERROR:', err)
+    return res.status(500).json({ message: 'Server error: ' + err.message })
+  }
 })
 
 export default router

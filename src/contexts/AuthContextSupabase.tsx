@@ -84,11 +84,13 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         const token = localStorage.getItem('auth_token');
         if (!active) return;
         if (token) {
-          const { data: row } = await supabase
-            .from('users')
-            .select('*')
-            .or(`id.eq.${token},phone.eq.${token}`)
-            .maybeSingle();
+          let query = supabase.from('users').select('*');
+          if (/^\d+$/.test(token)) {
+            query = query.eq('id', Number(token));
+          } else {
+            query = query.eq('phone', token);
+          }
+          const { data: row } = await query.maybeSingle();
           if (row) {
             const fakeAuthUser = { id: String(row.id), phone: row.phone, email: row.email, user_metadata: { name: row.name, mobile: row.phone } };
             const userProfile: UserProfile = {
@@ -222,6 +224,23 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         if (error) throw new Error(error.message);
         localStorage.setItem('auth_token', input.phone);
+        // Immediately sign the new user in
+        const { data: row } = await supabase
+          .from('users')
+          .select('*')
+          .eq('phone', input.phone)
+          .maybeSingle();
+        if (row) {
+          const fakeAuthUser = { id: String(row.id), phone: row.phone, email: row.email, user_metadata: { name: row.name, mobile: row.phone } };
+          const userProfile: UserProfile = {
+            id: String(row.id), auth_id: String(row.id), name: row.name, mobile: row.phone, email: row.email,
+            phone: row.phone, grade: row.grade, school: row.school, profile_image_url: row.profile_image_url,
+            date_of_birth: row.date_of_birth, gender: row.gender, preferences: row.preferences || { role: 'student' },
+            is_active: row.is_active, created_at: row.created_at, updated_at: row.updated_at, last_login: row.last_login,
+          };
+          await applyUserData(fakeAuthUser, userProfile);
+          return userProfile;
+        }
         return profile;
       } catch (error) {
         console.error("Register error:", error);
@@ -236,7 +255,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from('users')
           .update({
             name: input.name,
-            email: input.email,
+            email: input.email ?? user?.email ?? null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);

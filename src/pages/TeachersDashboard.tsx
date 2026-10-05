@@ -10,6 +10,8 @@ import { Users, Search, Filter, TrendingUp, TrendingDown, BookOpen, CheckCircle,
 import TopBar from '@/components/TopBar';
 import StarField from '@/components/StarField';
 import { useAuth } from '@/contexts/auth-context';
+import { supabase } from '@/integrations/supabase/client';
+import bcrypt from 'bcryptjs';
 
 // Data structure for student progress
 interface StudentSubjectPerformance {
@@ -184,35 +186,19 @@ const TeachersDashboard = () => {
     setCreateError('');
 
     try {
-      const token = localStorage.getItem('auth_token');
-      console.log('Creating student with token:', token ? '***' + token.slice(-4) : 'missing');
-      
-      if (!token) {
-        throw new Error('No authentication token found. Please log in again.');
-      }
-
-      const response = await fetch('/api/auth/create-student', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(newStudent),
+      const hashed = await bcrypt.hash(newStudent.password, 10);
+      const { error } = await supabase.from('users').insert({
+        phone: newStudent.phone,
+        email: null,
+        password_hash: hashed,
+        name: newStudent.fullName,
+        grade: null,
+        school: null,
+        preferences: { role: 'student', stream: newStudent.stream },
+        is_active: true,
       });
 
-      const text = await response.text();
-      console.log('Create student response:', text);
-      
-      if (!text || text.trim() === '') {
-        throw new Error('Empty response from server');
-      }
-      
-      const data = JSON.parse(text);
-      console.log('Create student response:', response.status, data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create student account');
-      }
+      if (error) throw new Error(error.message);
 
       setIsCreateModalOpen(false);
       setNewStudent({ fullName: '', phone: '', password: '', stream: 'natural' });

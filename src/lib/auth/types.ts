@@ -39,6 +39,7 @@ export type RegisterInput = {
   fullName: string;
   phone: string;
   password: string;
+  role?: 'student' | 'teacher';
 };
 
 export type SignInInput = {

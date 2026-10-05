@@ -8,6 +8,7 @@ import {
 
 import { AuthContext, type AuthContextValue } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import bcrypt from "bcryptjs";
 import {
   getPaymentStatus,
   hasPremiumPreferences,
@@ -80,115 +81,36 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const bootstrap = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!active) {
-          return;
-        }
-
-        if (session?.user) {
-          // Fetch profile from users table
-          const { data: profileData } = await supabase
+        const token = localStorage.getItem('auth_token');
+        if (!active) return;
+        if (token) {
+          const { data: row } = await supabase
             .from('users')
             .select('*')
-            .eq('auth_id', session.user.id)
-            .single();
-
-          if (profileData) {
+            .or(`id.eq.${token},phone.eq.${token}`)
+            .maybeSingle();
+          if (row) {
+            const fakeAuthUser = { id: String(row.id), phone: row.phone, email: row.email, user_metadata: { name: row.name, mobile: row.phone } };
             const userProfile: UserProfile = {
-              id: profileData.id,
-              auth_id: profileData.auth_id,
-              name: profileData.name,
-              mobile: profileData.mobile,
-              email: profileData.email,
-              phone: profileData.mobile, // Use mobile as phone
-              grade: profileData.grade,
-              school: profileData.school,
-              profile_image_url: profileData.profile_image_url,
-              date_of_birth: profileData.date_of_birth,
-              gender: profileData.gender,
-              preferences: profileData.preferences || {},
-              is_active: profileData.is_active,
-              created_at: profileData.created_at,
-              updated_at: profileData.updated_at,
-              last_login: profileData.last_login,
+              id: String(row.id), auth_id: String(row.id), name: row.name, mobile: row.phone, email: row.email,
+              phone: row.phone, grade: row.grade, school: row.school, profile_image_url: row.profile_image_url,
+              date_of_birth: row.date_of_birth, gender: row.gender, preferences: row.preferences || { role: 'student' },
+              is_active: row.is_active, created_at: row.created_at, updated_at: row.updated_at, last_login: row.last_login,
             };
-
-            await applyUserData(session.user, userProfile);
+            await applyUserData(fakeAuthUser, userProfile);
             checkInactiveAccount(userProfile);
-          } else {
-            clearAuthState();
-          }
-        } else {
-          clearAuthState();
-        }
+          } else { clearAuthState(); }
+        } else { clearAuthState(); }
       } catch (error) {
         console.error("Auth bootstrap error:", error);
-        if (active) {
-          clearAuthState();
-        }
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
-      }
+        if (active) clearAuthState();
+      } finally { if (active) setIsLoading(false); }
     };
 
-    const timeoutId = setTimeout(() => {
-      if (active) {
-        console.warn("Auth bootstrap timeout - clearing loading state");
-        setIsLoading(false);
-      }
-    }, 5000);
-
+    const timeoutId = setTimeout(() => { if (active) { console.warn("Auth bootstrap timeout"); setIsLoading(false); } }, 5000);
     bootstrap();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event, session);
-
-        if (event === 'SIGNED_IN' && session?.user) {
-          const { data: profileData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('auth_id', session.user.id)
-            .single();
-
-          if (profileData) {
-            const userProfile: UserProfile = {
-              id: profileData.id,
-              auth_id: profileData.auth_id,
-              name: profileData.name,
-              mobile: profileData.mobile,
-              email: profileData.email,
-              phone: profileData.mobile, // Use mobile as phone
-              grade: profileData.grade,
-              school: profileData.school,
-              profile_image_url: profileData.profile_image_url,
-              date_of_birth: profileData.date_of_birth,
-              gender: profileData.gender,
-              preferences: profileData.preferences || {},
-              is_active: profileData.is_active,
-              created_at: profileData.created_at,
-              updated_at: profileData.updated_at,
-              last_login: profileData.last_login,
-            };
-
-            await applyUserData(session.user, userProfile);
-            checkInactiveAccount(userProfile);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          clearAuthState();
-        }
-      }
-    );
-
-    return () => {
-      active = false;
-      clearTimeout(timeoutId);
-      subscription.unsubscribe();
-    };
+    return () => { active = false; clearTimeout(timeoutId); };
   }, [clearAuthState, applyUserData, checkInactiveAccount]);
 
   const value = useMemo<AuthContextValue>(() => ({
@@ -209,17 +131,17 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: profileData } = await supabase
           .from('users')
           .select('*')
-          .eq('auth_id', user.id)
-          .single();
+          .eq('id', user.id)
+          .maybeSingle();
 
         if (profileData) {
           const userProfile: UserProfile = {
-            id: profileData.id,
-            auth_id: profileData.auth_id,
+            id: String(profileData.id),
+            auth_id: String(profileData.id),
             name: profileData.name,
-            mobile: profileData.mobile,
+            mobile: profileData.phone,
             email: profileData.email,
-            phone: profileData.mobile, // Use mobile as phone
+            phone: profileData.phone,
             grade: profileData.grade,
             school: profileData.school,
             profile_image_url: profileData.profile_image_url,
@@ -240,27 +162,47 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         return null;
       }
     },
-    signIn: async (phone: string, password: string) => {
+    signIn: async (phoneOrEmail: string, password: string) => {
       try {
-        console.log("Supabase signIn with phone:", phone);
-        
-        // Sign in with Supabase (using email as phone for now)
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: `${phone}@university-door.local`, // Convert phone to email format
-          password,
-        });
+        // Allow both email (admin) and phone (students/teachers)
+        const lookup = phoneOrEmail.includes('@')
+          ? supabase.from('users').select('*').eq('email', phoneOrEmail.trim()).maybeSingle()
+          : supabase.from('users').select('*').eq('phone', phoneOrEmail.trim()).maybeSingle();
 
-        if (error) {
-          console.error("Supabase auth error:", error);
-          throw new Error(error.message);
-        }
+        const { data: row, error } = await lookup;
+        if (error) throw new Error(error.message);
+        if (!row) throw new Error('User not found');
 
-        if (data.user) {
-          // Profile will be loaded by auth state change listener
-          return profile;
-        }
-        
-        return null;
+        const ok = await bcrypt.compare(password, row.password_hash);
+        if (!ok) throw new Error('Incorrect password');
+
+        const fakeAuthUser = {
+          id: String(row.id),
+          phone: row.phone,
+          email: row.email,
+          user_metadata: { name: row.name, mobile: row.phone },
+        };
+        const userProfile: UserProfile = {
+          id: String(row.id),
+          auth_id: String(row.id),
+          name: row.name,
+          mobile: row.phone,
+          email: row.email,
+          phone: row.phone,
+          grade: row.grade,
+          school: row.school,
+          profile_image_url: row.profile_image_url,
+          date_of_birth: row.date_of_birth,
+          gender: row.gender,
+          preferences: row.preferences || { role: 'student' },
+          is_active: row.is_active,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+          last_login: row.last_login,
+        };
+        await applyUserData(fakeAuthUser, userProfile);
+        localStorage.setItem('auth_token', String(row.id));
+        return userProfile;
       } catch (error) {
         console.error("Sign in error:", error);
         throw error;
@@ -268,22 +210,18 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     register: async (input: RegisterInput) => {
       try {
-        const { data, error } = await supabase.auth.signUp({
-          email: `${input.phone}@university-door.local`,
-          password: input.password,
-          options: {
-            data: {
-              name: input.fullName,
-              mobile: input.phone,
-            },
-          },
+        const hashed = await bcrypt.hash(input.password, 10);
+        const role = input.role || 'student';
+        const { error } = await supabase.from('users').insert({
+          phone: input.phone,
+          password_hash: hashed,
+          name: input.fullName,
+          email: null,
+          preferences: { role },
+          is_active: true,
         });
-
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        // Profile will be created automatically by the trigger
+        if (error) throw new Error(error.message);
+        localStorage.setItem('auth_token', input.phone);
         return profile;
       } catch (error) {
         console.error("Register error:", error);
@@ -301,7 +239,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
             email: input.email,
             updated_at: new Date().toISOString(),
           })
-          .eq('auth_id', user.id);
+          .eq('id', user.id);
 
         if (error) {
           throw new Error(error.message);
@@ -316,7 +254,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     signOut: async () => {
       try {
-        await supabase.auth.signOut();
+        localStorage.removeItem('auth_token');
         clearAuthState();
       } catch (error) {
         console.error("Sign out error:", error);

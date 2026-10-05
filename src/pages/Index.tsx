@@ -20,6 +20,7 @@ import type { LucideIcon } from "lucide-react";
 import { EXAM_TOGETHER_URL } from "@/lib/examTogetherUrl";
 import { customerContacts } from "@/lib/contactsData";
 import StarField from "@/components/StarField";
+import { useAuth } from "@/hooks/useAuth";
 
 type MenuDef = {
   title: string;
@@ -99,6 +100,21 @@ const PAGE_BG = "#10081f"; /* deep violet base — matches predicted tile */
 const fadeUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } };
 
 const Index = () => {
+  const { isTeacher, isAdmin } = useAuth();
+  const items = isTeacher || isAdmin
+    ? [
+        {
+          title: "Teachers",
+          route: "/teachers",
+          description: "Manage students and create student accounts.",
+          icon: Users,
+          gridClass: "lg:col-span-2 min-h-[200px]",
+          surface: "border-indigo-500/35 bg-gradient-to-br from-indigo-500/20 via-slate-950/80 to-slate-950 hover:border-indigo-400/55 hover:shadow-indigo-500/15",
+        },
+        ...menuItems,
+      ]
+    : menuItems;
+
   return (
     <div
       className="relative min-h-screen text-white"
@@ -301,7 +317,7 @@ const Index = () => {
               </motion.div>
 
               <div className="grid auto-rows-min grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:gap-4">
-                {menuItems.map((item, index) => {
+                {items.map((item, index) => {
                   const Icon = item.icon;
                   const isPredicted = item.cardVariant === "predicted";
                   const inner = (

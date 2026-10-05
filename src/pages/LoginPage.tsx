@@ -21,11 +21,7 @@ const LoginPage = () => {
     if (isAuthenticated && profile) {
       const role = profile?.preferences?.role;
       console.log("Redirecting authenticated user, role:", role);
-      if (role === 'teacher' || role === 'admin') {
-        navigate("/teachers");
-      } else {
-        navigate("/grades");
-      }
+      navigate("/");
     }
   }, [isAuthenticated, profile, navigate]);
 
@@ -46,14 +42,7 @@ const LoginPage = () => {
       // Redirect immediately after successful login
       const role = profile?.preferences?.role;
       console.log("User role:", role);
-
-      if (role === 'teacher' || role === 'admin') {
-        console.log("Navigating to teacher dashboard");
-        navigate("/teachers");
-      } else {
-        console.log("Navigating to grades");
-        navigate("/grades");
-      }
+      navigate("/");
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in. Please set up Supabase credentials.");
@@ -72,11 +61,11 @@ const LoginPage = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white">Phone Number</Label>
+              <Label htmlFor="phone" className="text-white">Phone or Email</Label>
               <Input
                 id="phone"
-                type="tel"
-                placeholder="0912345678"
+                type="text"
+                placeholder="0912345678 or abdella@mewada.com"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"

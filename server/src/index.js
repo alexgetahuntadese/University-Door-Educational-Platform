@@ -57,18 +57,3 @@ app.use((error, _request, response, _next) => {
 app.listen(Number(PORT), () => {
   console.log(`Auth server listening on http://localhost:${PORT}`);
 });
-
-app.use((error, _request, response, _next) => {
-  console.error(error);
-
-  if (error?.message === "Origin is not allowed for this API.") {
-    response.status(403).json({ message: error.message });
-    return;
-  }
-
-  response.status(500).json({ message: "Something went wrong on the auth server." });
-});
-
-app.listen(Number(PORT), () => {
-  console.log(`Auth server listening on http://localhost:${PORT}`);
-});

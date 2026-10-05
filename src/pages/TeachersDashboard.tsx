@@ -11,6 +11,7 @@ import TopBar from '@/components/TopBar';
 import StarField from '@/components/StarField';
 import { useAuth } from '@/contexts/auth-context';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import bcrypt from 'bcryptjs';
 
 // Data structure for student progress
@@ -202,7 +203,7 @@ const TeachersDashboard = () => {
 
       setIsCreateModalOpen(false);
       setNewStudent({ fullName: '', phone: '', password: '', stream: 'natural' });
-      alert('Student account created successfully!');
+      toast.success('Student account created successfully!');
     } catch (error) {
       console.error('Create student error:', error);
       setCreateError(error instanceof Error ? error.message : 'Failed to create student account');

@@ -348,7 +348,7 @@ const Index = () => {
                     Choose your path
                   </h2>
                   <p className="mt-2 max-w-lg text-sm text-white/45 md:text-base">
-                    Tiles open the matching area of the app.
+                    Tiles open the matching area of the app. The Exam Room tile redirects to our companion Exam Together site.
                   </p>
                 </div>
                 <div className="hidden items-center gap-2 text-xs text-white/35 md:flex">

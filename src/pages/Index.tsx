@@ -1,5 +1,5 @@
 import { motion, memo } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   BookOpen,
@@ -21,6 +21,7 @@ import { EXAM_TOGETHER_URL } from "@/lib/examTogetherUrl";
 import { customerContacts } from "@/lib/contactsData";
 import StarField from "@/components/StarField";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 type MenuDef = {
   title: string;
@@ -100,6 +101,8 @@ const fadeUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } }
 
 const Index = () => {
   const { isTeacher, isAdmin, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const isTeacherOrAdmin = isTeacher || isAdmin;
   const items = isTeacher || isAdmin
     ? [
         ...(isAdmin
@@ -130,6 +133,15 @@ const Index = () => {
       ]
     : menuItems;
 
+  const signInCard = {
+    title: "Sign In",
+    route: "/login",
+    description: "Access your grades, notes, and more.",
+    icon: Sparkles,
+    gridClass: "lg:col-span-2 min-h-[200px]",
+    surface: "border-cyan-500/35 bg-gradient-to-br from-cyan-500/20 via-slate-950/80 to-slate-950 hover:border-cyan-400/55 hover:shadow-cyan-500/15",
+  };
+
   const itemsWithProfile = isAuthenticated
     ? [
         {
@@ -142,7 +154,7 @@ const Index = () => {
         },
         ...items,
       ]
-    : items;
+    : [signInCard, ...items];
 
   return (
     <div
@@ -424,7 +436,17 @@ const Index = () => {
                           {inner}
                         </a>
                       ) : (
-                        <Link to={item.route} className={`block h-full min-h-0 outline-none ${focusRing}`}>
+                        <Link
+                          to={item.route}
+                          onClick={(e) => {
+                            if (!isAuthenticated && item.route !== '/login' && item.route !== '/' && item.route !== '/contact') {
+                              e.preventDefault();
+                              toast.error('Please sign in to access this feature.');
+                              navigate('/login');
+                            }
+                          }}
+                          className={`block h-full min-h-0 outline-none ${focusRing}`}
+                        >
                           {inner}
                         </Link>
                       )}

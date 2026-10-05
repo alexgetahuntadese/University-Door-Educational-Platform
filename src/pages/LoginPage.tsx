@@ -21,7 +21,7 @@ const LoginPage = () => {
     if (isAuthenticated && profile) {
       const role = profile?.preferences?.role;
       console.log("Redirecting authenticated user, role:", role);
-      navigate("/");
+      navigate("/grades");
     }
   }, [isAuthenticated, profile, navigate]);
 
@@ -42,7 +42,7 @@ const LoginPage = () => {
       // Redirect immediately after successful login
       const role = profile?.preferences?.role;
       console.log("User role:", role);
-      navigate("/");
+      navigate("/grades");
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in. Please set up Supabase credentials.");

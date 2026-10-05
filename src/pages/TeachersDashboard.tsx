@@ -136,9 +136,13 @@ const TeachersDashboard = () => {
   const [filterGrade, setFilterGrade] = useState<'all' | '9' | '10' | '11' | '12'>('all');
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newStudent, setNewStudent] = useState({ fullName: '', phone: '', password: '', stream: 'natural' as 'natural' | 'social' });
+  const [newStudent, setNewStudent] = useState({ fullName: '', phone: '', password: '', stream: 'natural' as 'natural' | 'social', role: 'student' });
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+  
+  // Super admin email who can create teachers
+  const SUPER_ADMIN_EMAIL = 'abdella@mewada.com';
+  const isSuperAdmin = session?.user?.email === SUPER_ADMIN_EMAIL;
 
   useEffect(() => {
     if (!isLoading && !isTeacher) {
@@ -185,7 +189,7 @@ const TeachersDashboard = () => {
     return Math.round((correct / total) * 100);
   };
 
-  const handleCreateStudent = async () => {
+  const handleCreate = async () => {
     if (!newStudent.fullName || !newStudent.phone || !newStudent.password) {
       setCreateError('Please fill in all fields');
       return;
@@ -196,6 +200,16 @@ const TeachersDashboard = () => {
 
     try {
       const hashed = await bcrypt.hash(newStudent.password, 10);
+      
+      // Super admin can create both teachers and students
+      // Regular teachers can only create students
+      let preferences;
+      if (isSuperAdmin) {
+        preferences = { role: newStudent.role };
+      } else {
+        preferences = { role: 'student' };
+      }
+
       const { error } = await supabase.from('users').insert({
         phone: newStudent.phone,
         email: null,
@@ -203,23 +217,23 @@ const TeachersDashboard = () => {
         name: newStudent.fullName,
         grade: null,
         school: null,
-        preferences: { role: 'student', stream: newStudent.stream },
+        preferences,
         is_active: true,
       });
 
       if (error) {
         if (error.message.includes('users_phone_key') || error.message.includes('duplicate')) {
-          throw new Error('A student with that phone number already exists.');
+          throw new Error('A user with that phone number already exists.');
         }
         throw new Error(error.message);
       }
 
       setIsCreateModalOpen(false);
-      setNewStudent({ fullName: '', phone: '', password: '', stream: 'natural' });
-      toast.success('Student account created successfully!');
+      setNewStudent({ fullName: '', phone: '', password: '', stream: 'natural' as 'natural' | 'social', role: 'student' });
+      toast.success(`${isSuperAdmin ? 'Teacher' : 'Student'} account created successfully!`);
     } catch (error) {
-      console.error('Create student error:', error);
-      setCreateError(error instanceof Error ? error.message : 'Failed to create student account');
+      console.error('Create error:', error);
+      setCreateError(error instanceof Error ? error.message : 'Failed to create account');
     } finally {
       setIsCreating(false);
     }
@@ -253,12 +267,12 @@ const TeachersDashboard = () => {
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Student
+                {isSuperAdmin ? 'Create Teacher or Student' : 'Create Student'}
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-white/[0.06] backdrop-blur-xl border-white/[0.1] text-white">
               <DialogHeader>
-                <DialogTitle className="text-white">Create Student Account</DialogTitle>
+                <DialogTitle className="text-white">{isSuperAdmin ? 'Create Teacher Account' : 'Create Student Account'}</DialogTitle>
                 <DialogDescription className="text-white/60">
                   Enter the student's details to create a new account
                 </DialogDescription>

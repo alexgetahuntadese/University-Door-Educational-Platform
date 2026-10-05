@@ -170,49 +170,67 @@ const App = () => (
                   </RequireAuth>
                 } />
                 <Route path="/exam-room" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <ExamRoomPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <ExamRoomPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/matric/:year" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <MatricStreamPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <MatricStreamPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/matric/:year/:stream" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <MatricYearPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <MatricYearPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/matric/:year/:stream/:subject" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <MatricQuizPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <MatricQuizPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/notes" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <NotesPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <NotesPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/notes/:grade" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <NotesSubjectsPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <NotesSubjectsPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/notes/:grade/:subject" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <NotesChaptersPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <NotesChaptersPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/books" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <BooksPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <BooksPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/books/:grade" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <BookSubjectsPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <BookSubjectsPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/contact" element={
                   <Suspense fallback={<PageLoader />}>
@@ -235,14 +253,18 @@ const App = () => (
                   </Suspense>
                 } />
                 <Route path="/predicted-matric" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <PredictedMatricPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <PredictedMatricPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/predicted-matric/:stream/:subject" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <PredictedMatricQuizPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <PredictedMatricQuizPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/teachers" element={
                   <Suspense fallback={<PageLoader />}>
@@ -250,19 +272,25 @@ const App = () => (
                   </Suspense>
                 } />
                 <Route path="/ethiopian-matric-exam" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <EthiopianMatricExamPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <EthiopianMatricExamPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/grade-12-euee-exam" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <Grade12EUEEPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <Grade12EUEEPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
                 <Route path="/past-papers-ethiopia" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <PastPapersEthiopiaPage />
-                  </Suspense>
+                  <RequireAuth>
+                    <Suspense fallback={<PageLoader />}>
+                      <PastPapersEthiopiaPage />
+                    </Suspense>
+                  </RequireAuth>
                 } />
               </Routes>
             </BrowserRouter>

@@ -7,6 +7,7 @@ import {
   DoorOpen,
   GraduationCap,
   LineChart,
+  Lock,
   Mail,
   MapPin,
   NotebookPen,
@@ -331,14 +332,17 @@ const Index = () => {
                         >
                           <Icon className="h-5 w-5" aria-hidden />
                         </div>
-                        <ArrowUpRight
-                          className={`h-5 w-5 shrink-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${
-                            isPredicted
-                              ? "text-violet-300/50 group-hover:text-fuchsia-200"
-                              : "text-white/20 group-hover:text-amber-300/90"
-                          }`}
-                          aria-hidden
-                        />
+                        <div className="flex items-center gap-2">
+                          <Lock className="h-4 w-4 text-white/30" aria-hidden />
+                          <ArrowUpRight
+                            className={`h-5 w-5 shrink-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${
+                              isPredicted
+                                ? "text-violet-300/50 group-hover:text-fuchsia-200"
+                                : "text-white/20 group-hover:text-amber-300/90"
+                            }`}
+                            aria-hidden
+                          />
+                        </div>
                       </div>
                       <div className="relative mt-5">
                         <h3

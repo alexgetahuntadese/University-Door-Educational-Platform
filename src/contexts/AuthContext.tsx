@@ -14,7 +14,7 @@ import {
   isTeacherPreferences,
 } from "@/lib/authRoles";
 import { INACTIVE_ACCOUNT_NOTICE_KEY } from "@/lib/authStorage";
-import { parseAuthService } from "@/integrations/parse/parseAuth";
+import { localAuthService } from "@/lib/localAuth";
 import type {
   AuthUser,
   RegisterInput,
@@ -73,7 +73,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const bootstrap = async () => {
       try {
-        const session = await parseAuthService.getSession();
+        const session = await localAuthService.getSession();
 
         if (!active) {
           return;
@@ -126,7 +126,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     displayName: deriveDisplayName(user, profile),
     refreshProfile: async () => {
       try {
-        const session = await parseAuthService.getSession();
+        const session = await localAuthService.getSession();
         if (session?.profile) {
           return await applyUserData(session.user, session.profile);
         }
@@ -138,7 +138,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     signIn: async (phone: string, password: string) => {
       try {
-        const session = await parseAuthService.signIn({ phone, password });
+        const session = await localAuthService.signIn({ phone, password });
         if (session?.session?.user && session?.session?.profile) {
           const userProfile = await applyUserData(session.session.user, session.session.profile);
           checkInactiveAccount(userProfile);
@@ -152,7 +152,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     register: async (input: RegisterInput) => {
       try {
-        const session = await parseAuthService.register(input);
+        const session = await localAuthService.register(input);
         if (session?.session?.user && session?.session?.profile) {
           const userProfile = await applyUserData(session.session.user, session.session.profile);
           checkInactiveAccount(userProfile);
@@ -166,7 +166,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     updateProfile: async (input: UpdateProfileInput) => {
       try {
-        const session = await parseAuthService.updateProfile(input);
+        const session = await localAuthService.updateProfile(input);
         if (session?.profile) {
           const userProfile = await applyUserData(session.user, session.profile);
           return userProfile;
@@ -179,7 +179,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     signOut: async () => {
       try {
-        await parseAuthService.signOut();
+        await localAuthService.signOut();
         clearAuthState();
       } catch (error) {
         console.error("Sign out error:", error);

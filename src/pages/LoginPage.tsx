@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,17 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, isLoading } = useAuth();
+  const { signIn, isLoading, isAuthenticated } = useAuth();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/grades");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,10 +31,18 @@ const LoginPage = () => {
     }
 
     try {
-      await signIn(phone, password);
+      const profile = await signIn(phone, password);
+      console.log("Login successful, profile:", profile);
       toast.success("Signed in successfully!");
-      navigate("/grades");
+      
+      // Navigate based on role
+      if (profile?.preferences?.role === 'teacher' || profile?.preferences?.role === 'admin') {
+        navigate("/teachers");
+      } else {
+        navigate("/grades");
+      }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast.error(error.message || "Failed to sign in");
     }
   };

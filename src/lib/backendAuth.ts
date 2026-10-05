@@ -86,9 +86,9 @@ const requestJson = async <T>(path: string, init: RequestInit = {}) => {
   const token = getStoredToken();
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${path}`;
-  
+
   console.log(`[API] ${init.method || 'GET'} ${url}`);
-  
+
   let response;
   try {
     response = await fetch(url, {
@@ -102,7 +102,13 @@ const requestJson = async <T>(path: string, init: RequestInit = {}) => {
   } catch (error) {
     console.error('[API] Network error:', error);
     if (baseUrl === '/api') {
-      throw new Error('Cannot connect to backend server. Please ensure the backend is running locally on port 5000.');
+      throw new Error(
+        'Backend server is not running. Please start it:\n' +
+        '  cd server\n' +
+        '  npm install\n' +
+        '  npm run setup-demo\n' +
+        '  npm start'
+      );
     }
     throw new Error(`Cannot connect to backend server at ${baseUrl}. Please check if the backend is deployed and accessible.`);
   }

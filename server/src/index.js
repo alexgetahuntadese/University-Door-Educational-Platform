@@ -4,34 +4,18 @@ import cors from "cors";
 import express from "express";
 import authRouter from './auth/sqliteRoutes.js'
 import { uploadRouter, receiptStaticPath } from './auth/payments.js'
-import pg from "pg";
-
-const { Pool } = pg;
 
 const {
   PORT = "5000",
-  DATABASE_URL,
-  JWT_SECRET,
+  JWT_SECRET = "dev-secret-change-in-production",
   CLIENT_ORIGIN = "http://localhost:8080",
 } = process.env;
 
-if (!DATABASE_URL) {
-  throw new Error("Missing DATABASE_URL in server environment.");
-}
-
 if (!JWT_SECRET) {
-  throw new Error("Missing JWT_SECRET in server environment.");
+  console.warn("⚠️  Using default JWT_SECRET. Set JWT_SECRET in production!");
 }
 
 const app = express();
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-});
-
-const allowedOrigins = CLIENT_ORIGIN.split(",")
-  .map((value) => value.trim())
-  .filter(Boolean);
 
 app.use(
   cors({
@@ -51,12 +35,7 @@ app.use('/api/payments', uploadRouter)
 app.use('/uploads/receipts', express.static(receiptStaticPath))
 
 app.get("/api/health", async (_request, response) => {
-  try {
-    await pool.query("SELECT 1");
-    response.json({ ok: true });
-  } catch (error) {
-    response.status(500).json({ ok: false, message: "Database connection failed." });
-  }
+  response.json({ ok: true, message: "Server is running with SQLite database" });
 });
 
 app.use((error, _request, response, _next) => {

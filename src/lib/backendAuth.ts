@@ -51,7 +51,11 @@ export const normalizePhoneNumber = (value: string) => {
 
 const parseApiError = async (response: Response) => {
   try {
-    const data = await response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Empty error response');
+    }
+    const data = JSON.parse(text);
     if (typeof data?.message === "string" && data.message.trim()) {
       return data.message.trim();
     }

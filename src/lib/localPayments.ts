@@ -46,11 +46,19 @@ export const localPaymentService = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        throw new Error('Failed to submit payment');
+      }
+      const error = JSON.parse(text);
       throw new Error(error.message || 'Failed to submit payment');
     }
 
-    return response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Empty response from server');
+    }
+    return JSON.parse(text);
   },
 
   // Get authenticated user's submissions
@@ -65,7 +73,11 @@ export const localPaymentService = {
       throw new Error('Failed to load submissions');
     }
 
-    return response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Empty response from server');
+    }
+    return JSON.parse(text);
   },
 
   // Admin: Get all submissions
@@ -80,7 +92,11 @@ export const localPaymentService = {
       throw new Error('Failed to load submissions');
     }
 
-    return response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Empty response from server');
+    }
+    return JSON.parse(text);
   },
 
   // Admin: Verify or reject payment
@@ -95,7 +111,11 @@ export const localPaymentService = {
       throw new Error('Failed to update payment status');
     }
 
-    return response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Empty response from server');
+    }
+    return JSON.parse(text);
   },
   // Get user's payment status (for premium access)
   async getPaymentStatus() {
@@ -109,7 +129,11 @@ export const localPaymentService = {
       throw new Error('Failed to get payment status');
     }
 
-    return response.json();
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Empty response from server');
+    }
+    return JSON.parse(text);
   },
 };
 

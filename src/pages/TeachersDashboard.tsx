@@ -200,7 +200,14 @@ const TeachersDashboard = () => {
         body: JSON.stringify(newStudent),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      console.log('Create student response:', text);
+      
+      if (!text || text.trim() === '') {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
       console.log('Create student response:', response.status, data);
 
       if (!response.ok) {

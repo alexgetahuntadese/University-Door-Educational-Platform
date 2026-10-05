@@ -69,7 +69,19 @@ export const localAuthService = {
         };
       }
 
-      const data = await response.json();
+      const text = await response.text();
+      console.log('Session response text:', text);
+      
+      if (!text || text.trim() === '') {
+        console.error('Empty response from server');
+        localStorage.removeItem('auth_token');
+        return {
+          session: null,
+          profile: null,
+        };
+      }
+      
+      const data = JSON.parse(text);
       console.log('Session data received:', data);
       
       if (!data || typeof data !== 'object') {
@@ -116,7 +128,13 @@ export const localAuthService = {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      
+      if (!text || text.trim() === '') {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
 
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response from server');
@@ -162,7 +180,14 @@ export const localAuthService = {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      console.log('Sign in response text:', text);
+      
+      if (!text || text.trim() === '') {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
       console.log('Sign in response:', response.status, data);
 
       if (!data || typeof data !== 'object') {
@@ -217,7 +242,13 @@ export const localAuthService = {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      
+      if (!text || text.trim() === '') {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
 
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response from server');

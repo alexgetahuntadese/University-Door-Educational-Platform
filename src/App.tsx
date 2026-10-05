@@ -39,7 +39,6 @@ const RoleSelectionPage = lazy(() => import("./pages/RoleSelectionPage"));
 const PredictedMatricPage = lazy(() => import("./pages/PredictedMatricPage"));
 const PredictedMatricQuizPage = lazy(() => import("./pages/PredictedMatricQuizPage"));
 const TeachersDashboard = lazy(() => import("./pages/TeachersDashboard"));
-const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ExamRoomPage = lazy(() => import("./pages/ExamRoomPage"));
 const EthiopianMatricExamPage = lazy(() => import("./pages/EthiopianMatricExamPage"));
 const Grade12EUEEPage = lazy(() => import("./pages/Grade12EUEEPage"));
@@ -273,13 +272,6 @@ const App = () => (
                   <RequireAuth>
                     <Suspense fallback={<PageLoader />}>
                       <TeachersDashboard />
-                    </Suspense>
-                  </RequireAuth>
-                } />
-                <Route path="/admin" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <AdminPage />
                     </Suspense>
                   </RequireAuth>
                 } />

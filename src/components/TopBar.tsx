@@ -35,7 +35,7 @@ const TopBar = () => {
     { path: '/books', icon: Download, label: 'Books' },
     { path: '/career-simulator', icon: Briefcase, label: 'Career' },
     { path: '/contact', icon: Phone, label: 'Contact' },
-    ...(isAdmin ? [{ path: '/admin', icon: User, label: 'Admin' }] : []),
+    ...(isAdmin ? [] : []),
     ...(isTeacher ? [{ path: '/teachers', icon: Users, label: 'Teachers' }] : []),
   ], [isAdmin, isTeacher]);
 

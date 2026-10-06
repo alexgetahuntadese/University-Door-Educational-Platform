@@ -1,6 +1,6 @@
 import { useState, useMemo, memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, Home, GraduationCap, BookOpen, Briefcase, FileText, Menu, X, CreditCard, Download, LogOut, LogIn, ChevronDown, Phone, Target, Users } from 'lucide-react';
+import { User, Home, GraduationCap, BookOpen, Briefcase, FileText, Menu, X, CreditCard, Download, LogIn, LogOut, ChevronDown, Phone, Target, Users, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,6 +25,8 @@ const TopBar = () => {
     if (path === '/') return location.pathname === path;
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
+
+  const schoolName = 'Mewada School';
 
   const navItems = useMemo(() => [
     { path: '/', icon: Home, label: 'Home' },
@@ -223,15 +225,16 @@ const TopBar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="font-medium text-white/95 hover:bg-white/12 hover:text-white px-2 sm:px-3"
-            >
-              <LogIn className="h-4 w-4 shrink-0 sm:mr-1.5" />
-              <span className="hidden sm:inline">Sign In</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Image
+                src="/mewada-school-logo.jpeg"
+                alt="Mewada School Logo"
+                className="h-8 w-8 rounded-full object-cover"
+              />
+              <span className="text-white/90 font-medium truncate">
+                {schoolName}
+              </span>
+            </div>
           )}
         </div>
       </div>

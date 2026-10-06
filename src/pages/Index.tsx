@@ -439,10 +439,16 @@ const Index = () => {
                         <Link
                           to={item.route}
                           onClick={(e) => {
-                            if (!isAuthenticated && item.route !== '/login' && item.route !== '/' && item.route !== '/contact') {
-                              e.preventDefault();
-                              toast.error('Please sign in to access this feature.');
-                              navigate('/login');
+                            if (!isAuthenticated) {
+                              if (item.route === '/grades' || item.route === '/notes' || item.route === '/matric') {
+                                e.preventDefault();
+                                toast.error('Sign in first to access your learning features.');
+                                navigate('/login');
+                              } else if (item.route !== '/login' && item.route !== '/' && item.route !== '/contact') {
+                                e.preventDefault();
+                                toast.error('Sign in first to access this feature.');
+                                navigate('/login');
+                              }
                             }
                           }}
                           className={`block h-full min-h-0 outline-none ${focusRing}`}

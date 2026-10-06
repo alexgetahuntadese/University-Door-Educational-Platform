@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TopBar from '@/components/TopBar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,6 +61,7 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 relative overflow-hidden">
       <StarField />
+      <TopBar />
       <Card className="w-full max-w-md bg-white/10 backdrop-blur-lg border-white/20 relative z-10">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-white">Admin Dashboard</CardTitle>

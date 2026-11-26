@@ -63,7 +63,7 @@ export default {
         const room = env.ROOMS.get(env.ROOMS.idFromName(code));
         const result = await room.fetch("https://room.internal/create", {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ session, participant, expiresAt: Date.now() + ROOM_LIFETIME_MS }),
+          body: JSON.stringify({ session, participant, answerKeys: input.answerKeys, expiresAt: Date.now() + ROOM_LIFETIME_MS }),
         });
         if (result.status !== 409 || requestedCode) return withCors(result, request);
       }

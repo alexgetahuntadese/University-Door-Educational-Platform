@@ -3,7 +3,7 @@ import StarField from '@/components/StarField';
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Copy, Play, Trophy, Users } from "lucide-react";
+import { ArrowLeft, Copy, Link2, Play, Trophy, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
   getSession, 
@@ -152,6 +152,16 @@ const SessionPage = () => {
     toast({ title: t('common.codeCopied') });
   };
 
+  const copyInviteLink = async () => {
+    const inviteUrl = new URL(`/exam-room/join?code=${encodeURIComponent(sessionCode || '')}`, window.location.origin);
+    try {
+      await navigator.clipboard.writeText(inviteUrl.toString());
+      toast({ title: "Invite link copied", description: "Share this link before you start the exam." });
+    } catch {
+      toast({ title: "Could not copy invite link", description: "Copy the room code and share it with participants.", variant: "destructive" });
+    }
+  };
+
   if (!session && isLoadingRoom) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 flex items-center justify-center overflow-hidden relative">
@@ -284,6 +294,10 @@ const SessionPage = () => {
               <Copy className="h-5 w-5 text-white/70" />
             </div>
             <p className="text-center text-white/60 text-sm mt-2">{t('common.clickToCopy')}</p>
+            <Button onClick={copyInviteLink} variant="outline" className="mt-4 w-full border-white/20 bg-white/5 text-white hover:bg-white/10">
+              <Link2 className="mr-2 h-4 w-4" />
+              Copy invite link
+            </Button>
           </CardContent>
         </Card>
 

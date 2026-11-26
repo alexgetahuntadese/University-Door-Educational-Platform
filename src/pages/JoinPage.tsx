@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import StarField from '@/components/StarField';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,29 +13,38 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 
 const JoinPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [sessionCode, setSessionCode] = useState("");
+  const [sessionCode, setSessionCode] = useState(() =>
+    (searchParams.get("code") ?? "").trim().toUpperCase().slice(0, 6),
+  );
   const [playerName, setPlayerName] = useState("");
   const [isJoining, setIsJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   usePageTitle("Join an Exam Room");
 
-  const handleJoinSession = async () => {
-    if (!sessionCode.trim() || !playerName.trim()) {
-      toast({
-        title: t('join.missingFields'),
-        description: t('join.fillBoth'),
-        variant: "destructive"
-      });
+  const handleJoinSession = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalizedCode = sessionCode.trim().toUpperCase();
+    const normalizedName = playerName.trim();
+
+    if (!/^[A-HJ-NP-Z2-9]{6}$/.test(normalizedCode)) {
+      setJoinError("Enter the six-character room code exactly as shown. Codes do not use I, O, 0, or 1.");
+      return;
+    }
+    if (!normalizedName) {
+      setJoinError(t('join.fillBoth'));
       return;
     }
 
+    setJoinError(null);
     setIsJoining(true);
     try {
       const { session, participant } = await joinSession(
-        sessionCode.trim(),
-        playerName.trim()
+        normalizedCode,
+        normalizedName
       );
       
       sessionStorage.setItem('participantId', participant.id);
@@ -43,9 +52,11 @@ const JoinPage = () => {
       
       navigate(`/session/${session.session_code}`);
     } catch (error: any) {
+      const message = error instanceof Error ? error.message : t('join.errorJoining');
+      setJoinError(message);
       toast({
         title: "Error",
-        description: error.message || t('join.errorJoining'),
+        description: message,
         variant: "destructive"
       });
     } finally {
@@ -77,16 +88,23 @@ const JoinPage = () => {
               {t('join.enterCode')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
+            <form onSubmit={handleJoinSession} className="space-y-4">
             <div>
               <label className="text-sm text-white/80 mb-2 block">{t('join.sessionCode')}</label>
               <Input
                 placeholder={t('join.enterCodePlaceholder')}
                 value={sessionCode}
-                onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  setSessionCode(e.target.value.replace(/\s/g, "").toUpperCase().slice(0, 6));
+                  setJoinError(null);
+                }}
                 maxLength={6}
                 autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
                 aria-label={t('join.sessionCode')}
+                aria-invalid={Boolean(joinError)}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 text-center text-2xl tracking-widest font-mono"
               />
             </div>
@@ -96,19 +114,30 @@ const JoinPage = () => {
               <Input
                 placeholder={t('host.enterName')}
                 value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
+                onChange={(e) => {
+                  setPlayerName(e.target.value);
+                  setJoinError(null);
+                }}
                 maxLength={40}
+                autoComplete="nickname"
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
               />
             </div>
 
+            {joinError && (
+              <p role="alert" aria-live="polite" className="rounded-lg border border-red-300/25 bg-red-950/40 px-3 py-2 text-sm text-red-100">
+                {joinError}
+              </p>
+            )}
+
             <Button
-              onClick={handleJoinSession}
-              disabled={isJoining}
+              type="submit"
+              disabled={isJoining || sessionCode.length !== 6 || !playerName.trim()}
               className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-semibold py-3"
             >
               {isJoining ? t('join.joining') : t('join.joinSession')}
             </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

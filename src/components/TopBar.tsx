@@ -1,6 +1,6 @@
 import { useState, useMemo, memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, Home, GraduationCap, BookOpen, Briefcase, FileText, Menu, X, CreditCard, Download, LogIn, LogOut, ChevronDown, Phone, Target, Users, Image } from 'lucide-react';
+import { User, Home, GraduationCap, BookOpen, Briefcase, FileText, Menu, X, CreditCard, Download, LogOut, ChevronDown, Phone, Target, Users, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -128,20 +128,7 @@ const TopBar = () => {
                       <LogOut className="h-5 w-5 mr-3" />
                       Sign Out
                     </Button>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        navigate('/');
-                        setIsOpen(false);
-                      }}
-                      className="justify-start h-12 text-base text-white/85 hover:bg-white/12 hover:text-white"
-                    >
-                      <LogIn className="h-5 w-5 mr-3" />
-                      Sign In
-                    </Button>
-                  )}
+                  ) : null}
                 </nav>
               </SheetContent>
             </Sheet>

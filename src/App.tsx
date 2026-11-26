@@ -41,6 +41,9 @@ const PredictedMatricQuizPage = lazy(() => import("./pages/PredictedMatricQuizPa
 const TeachersDashboard = lazy(() => import("./pages/TeachersDashboard"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ExamRoomPage = lazy(() => import("./pages/ExamRoomPage"));
+const HostPage = lazy(() => import("./pages/HostPage"));
+const JoinPage = lazy(() => import("./pages/JoinPage"));
+const SessionPage = lazy(() => import("./pages/SessionPage"));
 const EthiopianMatricExamPage = lazy(() => import("./pages/EthiopianMatricExamPage"));
 const Grade12EUEEPage = lazy(() => import("./pages/Grade12EUEEPage"));
 const PastPapersEthiopiaPage = lazy(() => import("./pages/PastPapersEthiopiaPage"));
@@ -104,52 +107,40 @@ const App = () => (
                   </Suspense>
                 } />
                 <Route path="/grades" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <GradesPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <GradesPage />
+                  </Suspense>
                 } />
                 <Route path="/grade/:grade" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <GradeSelection />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <GradeSelection />
+                  </Suspense>
                 } />
                 <Route path="/grade/7/*" element={<Navigate to="/grades" replace />} />
                 <Route path="/grade/8/*" element={<Navigate to="/grades" replace />} />
                 <Route path="/grade/:grade/subjects" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <SubjectsPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <SubjectsPage />
+                  </Suspense>
                 } />
                 <Route
                   path="/grade/:grade/subject/:subject"
                   element={<Navigate to="chapters" replace />}
                 />
                 <Route path="/grade/:grade/subject/:subject/chapters" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <ChaptersPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <ChaptersPage />
+                  </Suspense>
                 } />
                 <Route path="/grade/:grade/subject/:subject/chapter/:chapterId/difficulty/:difficulty/quiz" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <QuizPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <QuizPage />
+                  </Suspense>
                 } />
                 <Route path="/career-simulator" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <CareerSimulatorPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <CareerSimulatorPage />
+                  </Suspense>
                 } />
                 <Route path="/performance" element={
                   <RequireAuth>
@@ -166,74 +157,69 @@ const App = () => (
                   </RequireAuth>
                 } />
                 <Route path="/matric" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <MatricExamPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <MatricExamPage />
+                  </Suspense>
                 } />
                 <Route path="/exam-room" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <ExamRoomPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <ExamRoomPage />
+                  </Suspense>
+                } />
+                <Route path="/exam-room/create" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <HostPage />
+                  </Suspense>
+                } />
+                <Route path="/exam-room/join" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <JoinPage />
+                  </Suspense>
+                } />
+                <Route path="/session/:sessionCode" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <SessionPage />
+                  </Suspense>
                 } />
                 <Route path="/matric/:year" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <MatricStreamPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <MatricStreamPage />
+                  </Suspense>
                 } />
                 <Route path="/matric/:year/:stream" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <MatricYearPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <MatricYearPage />
+                  </Suspense>
                 } />
                 <Route path="/matric/:year/:stream/:subject" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <MatricQuizPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <MatricQuizPage />
+                  </Suspense>
                 } />
                 <Route path="/notes" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <NotesPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <NotesPage />
+                  </Suspense>
                 } />
                 <Route path="/notes/:grade" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <NotesSubjectsPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <NotesSubjectsPage />
+                  </Suspense>
                 } />
                 <Route path="/notes/:grade/:subject" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <NotesChaptersPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <NotesChaptersPage />
+                  </Suspense>
                 } />
                 <Route path="/books" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <BooksPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <BooksPage />
+                  </Suspense>
                 } />
                 <Route path="/books/:grade" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <BookSubjectsPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <BookSubjectsPage />
+                  </Suspense>
                 } />
                 <Route path="/contact" element={
                   <Suspense fallback={<PageLoader />}>
@@ -256,18 +242,14 @@ const App = () => (
                   </Suspense>
                 } />
                 <Route path="/predicted-matric" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <PredictedMatricPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <PredictedMatricPage />
+                  </Suspense>
                 } />
                 <Route path="/predicted-matric/:stream/:subject" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <PredictedMatricQuizPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <PredictedMatricQuizPage />
+                  </Suspense>
                 } />
                 <Route path="/teachers" element={
                   <RequireAuth>
@@ -284,25 +266,19 @@ const App = () => (
                   </RequireAuth>
                 } />
                 <Route path="/ethiopian-matric-exam" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <EthiopianMatricExamPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <EthiopianMatricExamPage />
+                  </Suspense>
                 } />
                 <Route path="/grade-12-euee-exam" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <Grade12EUEEPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <Grade12EUEEPage />
+                  </Suspense>
                 } />
                 <Route path="/past-papers-ethiopia" element={
-                  <RequireAuth>
-                    <Suspense fallback={<PageLoader />}>
-                      <PastPapersEthiopiaPage />
-                    </Suspense>
-                  </RequireAuth>
+                  <Suspense fallback={<PageLoader />}>
+                    <PastPapersEthiopiaPage />
+                  </Suspense>
                 } />
               </Routes>
             </BrowserRouter>

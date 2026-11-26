@@ -57,6 +57,30 @@ const shuffleArray = <T,>(items: T[]): T[] => {
   return shuffled;
 };
 
+const hashSeed = (value: string): number => {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const shuffleArrayWithSeed = <T,>(items: T[], seed: string): T[] => {
+  const shuffled = [...items];
+  let state = hashSeed(seed) || 1;
+  const random = () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const target = Math.floor(random() * (index + 1));
+    [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
+  }
+  return shuffled;
+};
+
 export const shuffleQuestionOptions = <T extends OptionQuestion>(question: T): T => {
   if (!Array.isArray(question.options) || question.options.length < 2) {
     return question;
@@ -155,11 +179,15 @@ const questionSets: Record<string, Record<string, any>> = {
   },
 };
 
+export const getAvailableQuizSubjects = (grade: number): string[] =>
+  Object.keys(questionSets[grade.toString()] ?? {}).sort();
+
 export const getQuestionsForQuiz = (
   grade: number,
   subject: string,
   chapterId: string,
-  difficulty: string
+  difficulty: string,
+  seed?: string,
 ): NormalizedQuestion[] => {
   const gradeKey = grade.toString();
   const subjectData = questionSets[gradeKey]?.[subject];
@@ -176,8 +204,19 @@ export const getQuestionsForQuiz = (
     normalized = normalized.filter(q => q.difficulty === difficulty.toLowerCase());
   }
 
+  if (seed) {
+    return normalized
+      .map((question) => ({
+        question,
+        order: hashSeed(`${seed}:${question.question}`),
+      }))
+      .sort((a, b) => a.order - b.order || a.question.question.localeCompare(b.question.question))
+      .map(({ question }) => ({
+        ...question,
+        options: shuffleArrayWithSeed(question.options, `${seed}:${question.question}:options`),
+      }));
+  }
+
   // Shuffle and return
-  return normalized
-    .sort(() => Math.random() - 0.5)
-    .map(shuffleQuestionOptions);
+  return normalized.sort(() => Math.random() - 0.5).map(shuffleQuestionOptions);
 };

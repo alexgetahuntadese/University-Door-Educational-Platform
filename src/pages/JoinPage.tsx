@@ -8,6 +8,8 @@ import { ArrowLeft, LogIn } from "lucide-react";
 import { joinSession } from "@/lib/sessionUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/LanguageContext";
+import TopBar from "@/components/TopBar";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const JoinPage = () => {
   const navigate = useNavigate();
@@ -16,6 +18,8 @@ const JoinPage = () => {
   const [sessionCode, setSessionCode] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [isJoining, setIsJoining] = useState(false);
+
+  usePageTitle("Join an Exam Room");
 
   const handleJoinSession = async () => {
     if (!sessionCode.trim() || !playerName.trim()) {
@@ -50,12 +54,13 @@ const JoinPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 pt-16 overflow-hidden relative">
       <StarField starCount={30} shootingCount={2} />
+      <TopBar />
       <div className="max-w-md mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate("/grades")}
+          onClick={() => navigate("/exam-room")}
           className="text-white hover:bg-white/10 mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -80,6 +85,8 @@ const JoinPage = () => {
                 value={sessionCode}
                 onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
                 maxLength={6}
+                autoComplete="off"
+                aria-label={t('join.sessionCode')}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 text-center text-2xl tracking-widest font-mono"
               />
             </div>
@@ -90,6 +97,7 @@ const JoinPage = () => {
                 placeholder={t('host.enterName')}
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={40}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
               />
             </div>

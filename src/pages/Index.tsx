@@ -1,5 +1,5 @@
 import { motion, memo } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ArrowUpRight,
   BookOpen,
@@ -17,11 +17,9 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { EXAM_TOGETHER_URL } from "@/lib/examTogetherUrl";
 import { customerContacts } from "@/lib/contactsData";
 import StarField from "@/components/StarField";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
 
 type MenuDef = {
   title: string;
@@ -101,7 +99,6 @@ const fadeUp = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } }
 
 const Index = () => {
   const { isTeacher, isAdmin, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const isTeacherOrAdmin = isTeacher || isAdmin;
   const items = isTeacher || isAdmin
     ? [
@@ -133,15 +130,6 @@ const Index = () => {
       ]
     : menuItems;
 
-  const signInCard = {
-    title: "Sign In",
-    route: "/login",
-    description: "Access your grades, notes, and more.",
-    icon: Sparkles,
-    gridClass: "lg:col-span-2 min-h-[200px]",
-    surface: "border-cyan-500/35 bg-gradient-to-br from-cyan-500/20 via-slate-950/80 to-slate-950 hover:border-cyan-400/55 hover:shadow-cyan-500/15",
-  };
-
   const itemsWithProfile = isAuthenticated
     ? [
         {
@@ -154,7 +142,7 @@ const Index = () => {
         },
         ...items,
       ]
-    : [signInCard, ...items];
+    : items;
 
   return (
     <div
@@ -206,10 +194,10 @@ const Index = () => {
                 Contact
               </Link>
               <Link
-                to="/login"
+                to="/grades"
                 className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-md shadow-amber-900/30 transition-transform hover:scale-[1.02] sm:px-4 sm:text-sm"
               >
-                Start
+                Explore
               </Link>
             </nav>
           </div>
@@ -239,7 +227,7 @@ const Index = () => {
                 </p>
                 <div className="mt-10 flex flex-wrap items-center gap-4">
                   <Link
-                    to="/login"
+                    to="/grades"
                     className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-xl transition-transform hover:scale-[1.02] hover:bg-amber-50"
                   >
                     Get Started
@@ -256,7 +244,7 @@ const Index = () => {
                 {/* Role Selection Cards */}
                 <div className="mt-12 grid md:grid-cols-2 gap-6">
                   <Link
-                    to="/login"
+                    to="/grades"
                     className="group relative overflow-hidden rounded-2xl border border-cyan-500/35 bg-gradient-to-br from-cyan-500/20 via-slate-950/80 to-slate-950 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/55 hover:shadow-cyan-500/15"
                   >
                     <div className="pointer-events-none absolute -right-6 top-0 h-32 w-32 rounded-full blur-2xl bg-cyan-500/30 transition-opacity group-hover:opacity-100" />
@@ -267,7 +255,7 @@ const Index = () => {
                       <div className="mt-4">
                         <h3 className="text-xl font-semibold text-white">Student</h3>
                         <p className="mt-2 text-sm text-white/50">
-                          Access learning materials, quizzes, and track your progress
+                          Explore learning materials and practice with interactive quizzes
                         </p>
                       </div>
                       <div className="mt-4 flex items-center gap-2 text-cyan-300/70">
@@ -348,7 +336,7 @@ const Index = () => {
                     Choose your path
                   </h2>
                   <p className="mt-2 max-w-lg text-sm text-white/45 md:text-base">
-                    Tiles open the matching area of the app. The Exam Room tile redirects to our companion Exam Together site.
+                    Tiles open the matching area of the app. Create or join a live quiz in the Exam Room.
                   </p>
                 </div>
                 <div className="hidden items-center gap-2 text-xs text-white/35 md:flex">
@@ -436,23 +424,7 @@ const Index = () => {
                           {inner}
                         </a>
                       ) : (
-                        <Link
-                          to={item.route}
-                          onClick={(e) => {
-                            if (!isAuthenticated) {
-                              if (item.route === '/grades' || item.route === '/notes' || item.route === '/matric') {
-                                e.preventDefault();
-                                toast.error('Sign in first to access your learning features.');
-                                navigate('/login');
-                              } else if (item.route !== '/login' && item.route !== '/' && item.route !== '/contact') {
-                                e.preventDefault();
-                                toast.error('Sign in first to access this feature.');
-                                navigate('/login');
-                              }
-                            }
-                          }}
-                          className={`block h-full min-h-0 outline-none ${focusRing}`}
-                        >
+                        <Link to={item.route} className={`block h-full min-h-0 outline-none ${focusRing}`}>
                           {inner}
                         </Link>
                       )}

@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import AppLogo from "@/components/AppLogo";
-import { EXAM_TOGETHER_URL } from "@/lib/examTogetherUrl";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -56,7 +55,7 @@ const DashboardPage = () => {
       title: "Exam Room",
       description: "Timed practice and exam mode",
       icon: DoorOpen,
-      route: EXAM_TOGETHER_URL,
+      route: "/exam-room",
       color: "from-rose-500 to-pink-600",
     },
   ];

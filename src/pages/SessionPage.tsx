@@ -57,14 +57,32 @@ const SessionPage = () => {
   const [participantId, setParticipantId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<NormalizedQuestion[]>([]);
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [isLoadingRoom, setIsLoadingRoom] = useState(true);
+  const [roomError, setRoomError] = useState<string | null>(null);
 
-  const refreshData = useCallback(() => {
-    if (!sessionCode) return;
-    
-    const currentSession = getSession(sessionCode);
-    if (currentSession) {
+  const refreshData = useCallback(async () => {
+    if (!sessionCode) {
+      setRoomError("This room link is incomplete.");
+      setIsLoadingRoom(false);
+      return;
+    }
+
+    try {
+      const currentSession = await getSession(sessionCode);
+      if (!currentSession) {
+        setRoomError("This room could not be found. Ask the host for a new room code.");
+        setIsLoadingRoom(false);
+        return;
+      }
+
+      const currentParticipants = await getSessionParticipants(currentSession.id);
       setSession(currentSession);
-      setParticipants(getSessionParticipants(currentSession.id));
+      setParticipants(currentParticipants);
+      setRoomError(null);
+    } catch (error) {
+      setRoomError(error instanceof Error ? error.message : "Could not connect to this exam room.");
+    } finally {
+      setIsLoadingRoom(false);
     }
   }, [sessionCode]);
 
@@ -74,16 +92,16 @@ const SessionPage = () => {
     setParticipantId(storedParticipantId);
     setIsHost(storedIsHost);
 
-    refreshData();
-    const interval = setInterval(refreshData, 1000);
+    void refreshData();
+    const interval = setInterval(() => void refreshData(), 1500);
     return () => clearInterval(interval);
   }, [sessionCode, refreshData]);
 
   useEffect(() => {
-    if (session?.status === 'in_progress' && questions.length === 0) {
+    if (session && questions.length === 0) {
       loadQuestions();
     }
-  }, [session?.status]);
+  }, [session?.id, questions.length]);
 
   useEffect(() => {
     setHasAnswered(false);
@@ -95,7 +113,8 @@ const SessionPage = () => {
       parseInt(session.grade),
       session.subject,
       session.chapter_id,
-      session.difficulty
+      session.difficulty,
+      session.session_code
     );
     setQuestions(quizQuestions.slice(0, 10));
   };
@@ -103,26 +122,26 @@ const SessionPage = () => {
   const handleStartSession = async () => {
     if (!session) return;
     await startSession(session.id);
-    refreshData();
+    await refreshData();
   };
 
   const handleNextQuestion = async () => {
     if (!session) return;
     await nextQuestion(session.id, session.current_question_index);
-    refreshData();
+    await refreshData();
   };
 
   const handleEndSession = async () => {
     if (!session) return;
     await endSession(session.id);
-    refreshData();
+    await refreshData();
   };
 
   const handleAnswerSubmit = async (selectedAnswer: string, isCorrect: boolean) => {
     if (!session || !participantId || hasAnswered) return;
     setHasAnswered(true);
     await submitAnswer(session.id, participantId, session.current_question_index, selectedAnswer, isCorrect);
-    refreshData();
+    await refreshData();
   };
 
   const copyCode = () => {
@@ -130,11 +149,28 @@ const SessionPage = () => {
     toast({ title: t('common.codeCopied') });
   };
 
-  if (!session) {
+  if (!session && isLoadingRoom) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 flex items-center justify-center overflow-hidden relative">
         <StarField starCount={30} shootingCount={2} />
         <div className="text-white text-xl">{t('common.loading')}</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 flex items-center justify-center p-4 overflow-hidden relative">
+        <StarField starCount={30} shootingCount={2} />
+        <Card className="relative z-10 w-full max-w-md border-white/15 bg-white/10 text-center backdrop-blur-md">
+          <CardContent className="p-7">
+            <h1 className="text-xl font-semibold text-white">Unable to open this room</h1>
+            <p className="mt-3 text-sm leading-relaxed text-white/60">{roomError ?? "The room may have ended or the code may be incorrect."}</p>
+            <Button onClick={() => navigate("/exam-room/join")} className="mt-6 w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white">
+              Try another code
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -186,6 +222,7 @@ const SessionPage = () => {
             <div className="md:col-span-2">
               {currentQuestion && (
                 <LiveQuizSession
+                  key={session.current_question_index}
                   question={currentQuestion}
                   onAnswer={handleAnswerSubmit}
                   hasAnswered={hasAnswered}
@@ -284,7 +321,7 @@ const SessionPage = () => {
         {isHost ? (
           <Button
             onClick={handleStartSession}
-            disabled={participants.length < 1}
+            disabled={participants.length < 1 || questions.length === 0}
             className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-semibold py-3"
           >
             <Play className="mr-2 h-5 w-5" />

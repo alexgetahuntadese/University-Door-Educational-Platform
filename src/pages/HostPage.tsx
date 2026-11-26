@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import StarField from '@/components/StarField';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,24 +9,37 @@ import { ArrowLeft, Users } from "lucide-react";
 import { createSession } from "@/lib/sessionUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { getAvailableQuizSubjects, getQuestionsForQuiz } from "@/lib/quizUtils";
+import TopBar from "@/components/TopBar";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const HostPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [hostName, setHostName] = useState("");
-  const [grade, setGrade] = useState("");
+  const [grade, setGrade] = useState("12");
   const [subject, setSubject] = useState("");
-  const [chapter, setChapter] = useState("");
-  const [difficulty, setDifficulty] = useState("");
+  const [difficulty, setDifficulty] = useState("all");
   const [isCreating, setIsCreating] = useState(false);
 
-  const grades = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
-  const subjects = ["Mathematics", "Physics", "Chemistry", "Biology", "English", "History", "Geography", "Civics", "IT", "Agriculture"];
-  const difficulties = ["easy", "medium", "hard"];
+  const grades = ["10", "11", "12"];
+  const subjects = useMemo(() => getAvailableQuizSubjects(Number(grade)), [grade]);
+  const difficulties = ["all", "easy", "medium", "hard"];
+  const questionCount = useMemo(
+    () => getQuestionsForQuiz(Number(grade), subject, "all", difficulty).length,
+    [grade, subject, difficulty],
+  );
+
+  usePageTitle("Create an Exam Room");
+
+  const handleGradeChange = (value: string) => {
+    setGrade(value);
+    setSubject("");
+  };
 
   const handleCreateSession = async () => {
-    if (!hostName.trim() || !grade || !subject || !difficulty) {
+    if (!hostName.trim() || !grade || !subject || questionCount === 0) {
       toast({
         title: t('host.missingFields'),
         description: t('host.fillRequired'),
@@ -41,7 +54,7 @@ const HostPage = () => {
         hostName.trim(),
         grade,
         subject,
-        chapter || "all",
+        "all",
         difficulty
       );
       
@@ -52,7 +65,7 @@ const HostPage = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: t('host.errorCreating'),
+        description: error instanceof Error ? error.message : t('host.errorCreating'),
         variant: "destructive"
       });
     } finally {
@@ -61,12 +74,13 @@ const HostPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 overflow-hidden relative">
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 pt-16 overflow-hidden relative">
       <StarField starCount={30} shootingCount={2} />
+      <TopBar />
       <div className="max-w-md mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate("/grades")}
+          onClick={() => navigate("/exam-room")}
           className="text-white hover:bg-white/10 mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -96,7 +110,7 @@ const HostPage = () => {
 
             <div>
               <label className="text-sm text-white/80 mb-2 block">{t('common.grade')}</label>
-              <Select value={grade} onValueChange={setGrade}>
+              <Select value={grade} onValueChange={handleGradeChange}>
                 <SelectTrigger className="bg-white/10 border-white/20 text-white">
                   <SelectValue placeholder={t('host.selectGrade')} />
                 </SelectTrigger>
@@ -130,15 +144,19 @@ const HostPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {difficulties.map((d) => (
-                    <SelectItem key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</SelectItem>
+                    <SelectItem key={d} value={d}>{d === "all" ? "Any difficulty" : d.charAt(0).toUpperCase() + d.slice(1)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
+            <p className="text-sm text-white/55">
+              {subject ? `${questionCount} questions available` : "Choose a subject to see available questions."}
+            </p>
+
             <Button
               onClick={handleCreateSession}
-              disabled={isCreating}
+              disabled={isCreating || !subject || questionCount === 0}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3"
             >
               {isCreating ? t('host.creating') : t('host.createSession')}

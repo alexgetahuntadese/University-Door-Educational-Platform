@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import StarField from '@/components/StarField';
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -53,12 +53,23 @@ const SessionPage = () => {
   
   const [session, setSession] = useState<Session | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [isHost, setIsHost] = useState(false);
-  const [participantId, setParticipantId] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<NormalizedQuestion[]>([]);
+  const [participantId] = useState<string | null>(() => sessionStorage.getItem('participantId'));
   const [hasAnswered, setHasAnswered] = useState(false);
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
   const [roomError, setRoomError] = useState<string | null>(null);
+  const [isActionPending, setIsActionPending] = useState(false);
+  const isHost = Boolean(participants.some((participant) => participant.id === participantId && participant.is_host));
+  const questions = useMemo(() => {
+    if (!session) return [];
+    return getQuestionsForQuiz(
+      Number.parseInt(session.grade, 10),
+      session.subject,
+      session.chapter_id,
+      session.difficulty,
+      session.session_code,
+    ).slice(0, 10);
+  }, [session?.id, session?.grade, session?.subject, session?.chapter_id, session?.difficulty, session?.session_code]);
+  const isParticipant = Boolean(participants.some((participant) => participant.id === participantId));
 
   const refreshData = useCallback(async () => {
     if (!sessionCode) {
@@ -70,6 +81,8 @@ const SessionPage = () => {
     try {
       const currentSession = await getSession(sessionCode);
       if (!currentSession) {
+        setSession(null);
+        setParticipants([]);
         setRoomError("This room could not be found. Ask the host for a new room code.");
         setIsLoadingRoom(false);
         return;
@@ -87,69 +100,94 @@ const SessionPage = () => {
   }, [sessionCode]);
 
   useEffect(() => {
-    const storedParticipantId = sessionStorage.getItem('participantId');
-    const storedIsHost = sessionStorage.getItem('isHost') === 'true';
-    setParticipantId(storedParticipantId);
-    setIsHost(storedIsHost);
-
-    void refreshData();
-    const interval = setInterval(() => void refreshData(), 1500);
-    return () => clearInterval(interval);
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = async () => {
+      await refreshData();
+      if (active) timer = setTimeout(poll, 2500);
+    };
+    void poll();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
   }, [sessionCode, refreshData]);
-
-  useEffect(() => {
-    if (session && questions.length === 0) {
-      loadQuestions();
-    }
-  }, [session?.id, questions.length]);
 
   useEffect(() => {
     setHasAnswered(false);
   }, [session?.current_question_index]);
 
-  const loadQuestions = () => {
-    if (!session) return;
-    const quizQuestions = getQuestionsForQuiz(
-      parseInt(session.grade),
-      session.subject,
-      session.chapter_id,
-      session.difficulty,
-      session.session_code
-    );
-    setQuestions(quizQuestions.slice(0, 10));
-  };
-
   const handleStartSession = async () => {
-    if (!session) return;
-    if (!participantId) return;
-    await startSession(session.session_code, participantId);
-    await refreshData();
+    if (!session || !participantId || isActionPending) return;
+    setIsActionPending(true);
+    setRoomError(null);
+    try {
+      await startSession(session.session_code, participantId);
+      await refreshData();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not start this exam.";
+      setRoomError(message);
+      toast({ title: "Could not start exam", description: message, variant: "destructive" });
+    } finally {
+      setIsActionPending(false);
+    }
   };
 
   const handleNextQuestion = async () => {
-    if (!session) return;
-    if (!participantId) return;
-    await nextQuestion(session.session_code, participantId, session.current_question_index);
-    await refreshData();
+    if (!session || !participantId || isActionPending) return;
+    setIsActionPending(true);
+    setRoomError(null);
+    try {
+      await nextQuestion(session.session_code, participantId, session.current_question_index);
+      await refreshData();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not advance to the next question.";
+      setRoomError(message);
+      toast({ title: "Could not advance exam", description: message, variant: "destructive" });
+    } finally {
+      setIsActionPending(false);
+    }
   };
 
   const handleEndSession = async () => {
-    if (!session) return;
-    if (!participantId) return;
-    await endSession(session.session_code, participantId);
-    await refreshData();
+    if (!session || !participantId || isActionPending) return;
+    setIsActionPending(true);
+    setRoomError(null);
+    try {
+      await endSession(session.session_code, participantId);
+      await refreshData();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not end this exam.";
+      setRoomError(message);
+      toast({ title: "Could not end exam", description: message, variant: "destructive" });
+    } finally {
+      setIsActionPending(false);
+    }
   };
 
   const handleAnswerSubmit = async (selectedAnswer: string, isCorrect: boolean) => {
     if (!session || !participantId || hasAnswered) return;
     setHasAnswered(true);
-    await submitAnswer(session.session_code, participantId, session.current_question_index, selectedAnswer, isCorrect);
-    await refreshData();
+    try {
+      await submitAnswer(session.session_code, participantId, session.current_question_index, selectedAnswer, isCorrect);
+      await refreshData();
+    } catch (error) {
+      setHasAnswered(false);
+      toast({
+        title: "Answer not submitted",
+        description: error instanceof Error ? error.message : "Check your connection and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(sessionCode || '');
-    toast({ title: t('common.codeCopied') });
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(sessionCode || '');
+      toast({ title: t('common.codeCopied') });
+    } catch {
+      toast({ title: "Could not copy room code", description: "Select the code and copy it manually.", variant: "destructive" });
+    }
   };
 
   const copyInviteLink = async () => {
@@ -188,6 +226,23 @@ const SessionPage = () => {
     );
   }
 
+  if (!isParticipant) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 flex items-center justify-center p-4 overflow-hidden relative">
+        <StarField starCount={30} shootingCount={2} />
+        <Card className="relative z-10 w-full max-w-md border-white/15 bg-white/10 text-center backdrop-blur-md">
+          <CardContent className="p-7">
+            <h1 className="text-xl font-semibold text-white">Join this room first</h1>
+            <p className="mt-3 text-sm leading-relaxed text-white/60">Enter your name to join the waiting room and take part in this exam.</p>
+            <Button onClick={() => navigate(`/exam-room/join?code=${encodeURIComponent(session.session_code)}`)} className="mt-6 w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white">
+              Join exam room
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (session.status === 'completed') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 overflow-hidden relative">
@@ -213,9 +268,39 @@ const SessionPage = () => {
     );
   }
 
+  if (session.status === 'in_progress' && questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 flex items-center justify-center p-4 overflow-hidden relative">
+        <StarField starCount={30} shootingCount={2} />
+        <Card className="relative z-10 w-full max-w-md border-white/15 bg-white/10 text-center backdrop-blur-md">
+          <CardContent className="p-7">
+            <h1 className="text-xl font-semibold text-white">Questions unavailable</h1>
+            <p className="mt-3 text-sm leading-relaxed text-white/60">No questions match this room’s grade, subject, and difficulty. The host needs to end this room and create another exam with an available question set.</p>
+            {isHost && <Button onClick={handleEndSession} disabled={isActionPending} className="mt-6 w-full bg-green-500 text-white">End exam</Button>}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (session.status === 'in_progress' && questions.length > 0) {
     const currentQuestion = questions[session.current_question_index];
     const isLastQuestion = session.current_question_index >= questions.length - 1;
+
+    if (!currentQuestion) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 flex items-center justify-center p-4 overflow-hidden relative">
+          <StarField starCount={30} shootingCount={2} />
+          <Card className="relative z-10 w-full max-w-md border-white/15 bg-white/10 text-center backdrop-blur-md">
+            <CardContent className="p-7">
+              <h1 className="text-xl font-semibold text-white">Question unavailable</h1>
+              <p className="mt-3 text-sm leading-relaxed text-white/60">The room moved beyond the available questions. Ask the host to end the exam and create a new room.</p>
+              {isHost && <Button onClick={handleEndSession} disabled={isActionPending} className="mt-6 w-full bg-green-500 text-white">End exam</Button>}
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 overflow-hidden relative">
@@ -230,6 +315,7 @@ const SessionPage = () => {
               {participants.length} {t('common.players')}
             </div>
           </div>
+          {roomError && <p role="status" className="mb-4 rounded-lg border border-amber-300/20 bg-amber-950/30 px-3 py-2 text-sm text-amber-100">Room update issue: {roomError}</p>}
 
           <div className="grid md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
@@ -245,11 +331,11 @@ const SessionPage = () => {
               {isHost && (
                 <div className="mt-4 flex gap-2">
                   {!isLastQuestion ? (
-                    <Button onClick={handleNextQuestion} className="flex-1 bg-blue-500 hover:bg-blue-600">
+                    <Button onClick={handleNextQuestion} disabled={isActionPending} className="flex-1 bg-blue-500 hover:bg-blue-600">
                       {t('session.nextQuestion')}
                     </Button>
                   ) : (
-                    <Button onClick={handleEndSession} className="flex-1 bg-green-500 hover:bg-green-600">
+                    <Button onClick={handleEndSession} disabled={isActionPending} className="flex-1 bg-green-500 hover:bg-green-600">
                       {t('session.endQuiz')}
                     </Button>
                   )}
@@ -270,6 +356,7 @@ const SessionPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950 p-4 overflow-hidden relative">
       <StarField starCount={30} shootingCount={2} />
       <div className="max-w-md mx-auto">
+        {roomError && <p role="status" className="mb-4 rounded-lg border border-amber-300/20 bg-amber-950/30 px-3 py-2 text-sm text-amber-100">Room update issue: {roomError}</p>}
         <Button
           variant="ghost"
           onClick={() => navigate("/grades")}
@@ -284,15 +371,17 @@ const SessionPage = () => {
             <CardTitle className="text-xl text-white">{t('session.sessionCode')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div 
+            <button
+              type="button"
               onClick={copyCode}
-              className="bg-white/20 rounded-lg p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-white/30 transition-colors"
+              aria-label={`Copy room code ${session.session_code}`}
+              className="w-full bg-white/20 rounded-lg p-4 flex items-center justify-center gap-2 cursor-pointer hover:bg-white/30 transition-colors"
             >
               <span className="text-4xl font-mono font-bold text-white tracking-widest">
                 {session.session_code}
               </span>
               <Copy className="h-5 w-5 text-white/70" />
-            </div>
+            </button>
             <p className="text-center text-white/60 text-sm mt-2">{t('common.clickToCopy')}</p>
             <Button onClick={copyInviteLink} variant="outline" className="mt-4 w-full border-white/20 bg-white/5 text-white hover:bg-white/10">
               <Link2 className="mr-2 h-4 w-4" />
@@ -335,10 +424,15 @@ const SessionPage = () => {
           </CardContent>
         </Card>
 
+        {questions.length === 0 && (
+          <p role="alert" className="mb-3 rounded-lg border border-red-300/20 bg-red-950/30 px-3 py-2 text-sm text-red-100">
+            No questions are available for this exam setup. Change the grade, subject, or difficulty and create a new room.
+          </p>
+        )}
         {isHost ? (
           <Button
             onClick={handleStartSession}
-            disabled={participants.length < 1 || questions.length === 0}
+            disabled={isActionPending || !isHost || questions.length === 0}
             className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-semibold py-3"
           >
             <Play className="mr-2 h-5 w-5" />

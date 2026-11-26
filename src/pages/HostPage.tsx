@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import StarField from '@/components/StarField';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,8 @@ const HostPage = () => {
     setSubject("");
   };
 
-  const handleCreateSession = async () => {
+  const handleCreateSession = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!hostName.trim() || !grade || !subject || questionCount === 0) {
       toast({
         title: t('host.missingFields'),
@@ -97,13 +98,16 @@ const HostPage = () => {
               {t('host.hostDescription')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
+            <form onSubmit={handleCreateSession} className="space-y-4">
             <div>
               <label className="text-sm text-white/80 mb-2 block">{t('host.yourName')}</label>
               <Input
                 placeholder={t('host.enterName')}
                 value={hostName}
                 onChange={(e) => setHostName(e.target.value)}
+                maxLength={40}
+                autoComplete="nickname"
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
               />
             </div>
@@ -155,12 +159,13 @@ const HostPage = () => {
             </p>
 
             <Button
-              onClick={handleCreateSession}
-              disabled={isCreating || !subject || questionCount === 0}
+              type="submit"
+              disabled={isCreating || !hostName.trim() || !subject || questionCount === 0}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3"
             >
               {isCreating ? t('host.creating') : t('host.createSession')}
             </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

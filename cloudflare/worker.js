@@ -1,4 +1,5 @@
 const CODE_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const ROOM_LIFETIME_MS = 24 * 60 * 60 * 1000;
 
 const json = (body, status = 200, request) => new Response(JSON.stringify(body), {
   status,
@@ -11,9 +12,10 @@ const json = (body, status = 200, request) => new Response(JSON.stringify(body),
   },
 });
 
-const makeCode = () => Array.from({ length: 6 }, () =>
-  CODE_CHARACTERS[Math.floor(Math.random() * CODE_CHARACTERS.length)],
-).join("");
+const makeCode = () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  return Array.from(bytes, (byte) => CODE_CHARACTERS[byte % CODE_CHARACTERS.length]).join("");
+};
 
 export default {
   async fetch(request, env) {
@@ -27,11 +29,13 @@ export default {
         "vary": "origin",
       },
     });
-    if (!url.pathname.startsWith("/api/rooms")) return json({ error: "Not found." }, 404, request);
+    if (url.pathname !== "/api/rooms" && !url.pathname.startsWith("/api/rooms/")) {
+      return json({ error: "Not found." }, 404, request);
+    }
 
     if (url.pathname === "/api/rooms" && request.method === "POST") {
       const input = await request.json().catch(() => null);
-      if (!input || !validName(input.hostName) || !input.grade || !input.subject) {
+      if (!validRoomSetup(input)) {
         return json({ error: "Enter a name, grade, and subject to create a room." }, 400, request);
       }
 
@@ -45,9 +49,9 @@ export default {
           host_name: input.hostName.trim(),
           status: "waiting",
           grade: String(input.grade),
-          subject: String(input.subject),
-          chapter_id: String(input.chapterId ?? "all"),
-          difficulty: String(input.difficulty ?? "all"),
+          subject: input.subject.trim(),
+          chapter_id: String(input.chapterId ?? "all").slice(0, 80),
+          difficulty: String(input.difficulty ?? "all").toLowerCase(),
           current_question_index: 0,
           created_at: createdAt,
         };
@@ -58,7 +62,7 @@ export default {
         const room = env.ROOMS.get(env.ROOMS.idFromName(code));
         const result = await room.fetch("https://room.internal/create", {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ session, participant }),
+          body: JSON.stringify({ session, participant, expiresAt: Date.now() + ROOM_LIFETIME_MS }),
         });
         if (result.status !== 409) return withCors(result, request);
       }
@@ -90,7 +94,15 @@ export class RoomDurableObject {
 
   async fetch(request) {
     const path = new URL(request.url).pathname;
-    const room = await this.state.storage.get("room");
+    let room = await this.state.storage.get("room");
+    if (room?.expiresAt && room.expiresAt <= Date.now()) {
+      await this.state.storage.delete("room");
+      room = undefined;
+    } else if (room && !room.expiresAt) {
+      room.expiresAt = Date.now() + ROOM_LIFETIME_MS;
+      await this.state.storage.put("room", room);
+      await this.state.storage.setAlarm(room.expiresAt);
+    }
     const input = request.method === "POST" ? await request.json().catch(() => null) : null;
 
     if (path === "/create" && request.method === "POST") {
@@ -99,7 +111,9 @@ export class RoomDurableObject {
         session: input.session,
         participants: [input.participant],
         answers: [],
+        expiresAt: input.expiresAt,
       });
+      await this.state.storage.setAlarm(input.expiresAt);
       return json({ session: input.session, participant: input.participant });
     }
     if (!room) return json({ error: "Room not found. Check the code and try again." }, 404);
@@ -164,10 +178,31 @@ export class RoomDurableObject {
 
     return json({ error: "Not found." }, 404);
   }
+
+  async alarm() {
+    const room = await this.state.storage.get("room");
+    if (room?.expiresAt && room.expiresAt <= Date.now()) {
+      await this.state.storage.delete("room");
+    } else if (room?.expiresAt) {
+      await this.state.storage.setAlarm(room.expiresAt);
+    }
+  }
 }
 
 function validName(value) {
   return typeof value === "string" && value.trim().length > 0 && value.trim().length <= 40;
+}
+
+function validRoomSetup(input) {
+  return Boolean(
+    input &&
+      validName(input.hostName) &&
+      ["10", "11", "12"].includes(String(input.grade)) &&
+      typeof input.subject === "string" &&
+      input.subject.trim().length > 0 &&
+      input.subject.trim().length <= 80 &&
+      ["all", "easy", "medium", "hard"].includes(String(input.difficulty ?? "all").toLowerCase()),
+  );
 }
 
 function isHost(room, participantId) {

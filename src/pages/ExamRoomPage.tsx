@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { isSupabaseConfigured } from "@/lib/supabaseConfig";
+import { isCloudflareRoomsConfigured } from "@/lib/sessionUtils";
 
 const ExamRoomPage = () => {
   const navigate = useNavigate();
@@ -59,9 +59,9 @@ const ExamRoomPage = () => {
         <div className="mx-auto mt-7 flex max-w-3xl items-start gap-3 rounded-xl border border-white/10 bg-white/[0.035] p-4 text-sm text-white/50">
           <Wifi className="mt-0.5 h-4 w-4 shrink-0 text-violet-200/70" />
           <p>
-            {isSupabaseConfigured
+            {isCloudflareRoomsConfigured
               ? "Room codes connect participants to the same live quiz. The host controls when the exam starts and advances to each question."
-              : "Online rooms are not configured in this environment. Without Supabase settings, room data is saved only in this browser."}
+              : "Shared exam rooms are not configured in this environment. Rooms created here are only available in this browser."}
           </p>
         </div>
       </main>

@@ -53,10 +53,21 @@ const saveLocalAnswers = (answers: SessionAnswer[]) => localStorage.setItem(ANSW
 
 const roomRequest = async <T,>(path: string, init?: RequestInit): Promise<T> => {
   if (!cloudflareRoomsUrl) throw new Error("Cloudflare exam rooms are not configured.");
-  const response = await fetch(`${cloudflareRoomsUrl}/api/rooms${path}`, {
-    ...init,
-    headers: { "content-type": "application/json", ...init?.headers },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12_000);
+  let response: Response;
+  try {
+    response = await fetch(`${cloudflareRoomsUrl}/api/rooms${path}`, {
+      ...init,
+      signal: init?.signal ?? controller.signal,
+      headers: { "content-type": "application/json", ...init?.headers },
+    });
+  } catch {
+    if (controller.signal.aborted) throw new Error("The room service took too long to respond. Check your connection and try again.");
+    throw new Error("Could not reach the live exam room. Check your connection and try again.");
+  } finally {
+    clearTimeout(timeout);
+  }
   const result = await response.json().catch(() => ({})) as { error?: string };
   if (!response.ok) throw new Error(result.error ?? "Could not connect to the exam room.");
   return result as T;

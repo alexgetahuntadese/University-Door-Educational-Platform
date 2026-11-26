@@ -124,15 +124,34 @@ export const shuffleIndexedQuestionOptions = <T extends IndexedOptionQuestion>(q
   };
 };
 
-// Flatten questions from nested objects to flat arrays
-const flattenQuestions = (questionsObj: Record<string, any[]>): any[] => {
-  const result: any[] = [];
-  Object.values(questionsObj).forEach(chapterQuestions => {
-    if (Array.isArray(chapterQuestions)) {
-      result.push(...chapterQuestions);
+// Flatten both unit -> question[] and unit -> difficulty -> question[] banks.
+const flattenQuestions = (questionsObj: Record<string, unknown>): any[] => {
+  const collect = (value: unknown, inheritedDifficulty?: string): any[] => {
+    if (Array.isArray(value)) {
+      return value.map((question) => {
+        if (
+          inheritedDifficulty &&
+          question &&
+          typeof question === 'object' &&
+          !('difficulty' in question)
+        ) {
+          return { ...question, difficulty: inheritedDifficulty };
+        }
+        return question;
+      });
     }
-  });
-  return result;
+
+    if (!value || typeof value !== 'object') return [];
+
+    return Object.entries(value).flatMap(([key, nested]) => {
+      const difficulty = ['easy', 'medium', 'hard'].includes(key.toLowerCase())
+        ? key
+        : inheritedDifficulty;
+      return collect(nested, difficulty);
+    });
+  };
+
+  return collect(questionsObj);
 };
 
 // Normalize different question formats to a standard format

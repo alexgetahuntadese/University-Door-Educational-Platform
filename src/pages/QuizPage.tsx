@@ -3,7 +3,7 @@ import StarField from '@/components/StarField';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { grade12Mathematics } from '@/data/grade12Mathematics';
 import { grade12PhysicsQuestions } from '@/data/grade12PhysicsQuestions';
-import { grade12ChemistryQuestions } from '@/data/grade12ChemistryQuestions';
+import { grade12ChemistryQuestions, getGrade12ChemistryQuestions } from '@/data/grade12ChemistryQuestions';
 import { grade12BiologyQuestions } from '@/data/grade12BiologyQuestions';
 import { grade12EnglishQuestions } from '@/data/grade12EnglishQuestions';
 import { grade12AgricultureQuestions } from '@/data/grade12AgricultureQuestions';
@@ -355,8 +355,11 @@ const getQuestionsForSubject = (subject: string, chapter: string, difficulty: st
         allQuestions = Array.isArray(physicsData) ? physicsData : [];
         break;
       case 'Chemistry':
-        const chemData = grade12ChemistryQuestions[chapter];
-        allQuestions = Array.isArray(chemData) ? chemData : [];
+        allQuestions = getGrade12ChemistryQuestions(
+          chapter,
+          difficulty.toLowerCase() as 'easy' | 'medium' | 'hard',
+          count,
+        );
         break;
       case 'Biology':
         const bioData = grade12BiologyQuestions[chapter];

@@ -1,3 +1,5 @@
+import { getQuestionsForQuiz } from "@/lib/quizUtils";
+
 export type SessionStatus = "waiting" | "in_progress" | "completed";
 
 export interface Session {
@@ -41,7 +43,8 @@ export const isCloudflareRoomsConfigured = Boolean(cloudflareRoomsUrl);
 
 export const generateSessionCode = (): string => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  return Array.from(bytes, (byte) => chars[byte % chars.length]).join("");
 };
 
 const getLocalSessions = (): Session[] => JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? "[]");
@@ -69,7 +72,11 @@ const roomRequest = async <T,>(path: string, init?: RequestInit): Promise<T> => 
     clearTimeout(timeout);
   }
   const result = await response.json().catch(() => ({})) as { error?: string };
-  if (!response.ok) throw new Error(result.error ?? "Could not connect to the exam room.");
+  if (!response.ok) {
+    const error = new Error(result.error ?? "Could not connect to the exam room.") as Error & { status?: number };
+    error.status = response.status;
+    throw error;
+  }
   return result as T;
 };
 
@@ -81,10 +88,23 @@ export const createSession = async (
   difficulty: string,
 ) => {
   if (isCloudflareRoomsConfigured) {
-    return roomRequest<{ session: Session; participant: Participant }>("", {
-      method: "POST",
-      body: JSON.stringify({ hostName, grade, subject, chapterId, difficulty }),
-    });
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const sessionCode = generateSessionCode();
+      const answerKeys = getQuestionsForQuiz(Number(grade), subject, chapterId, difficulty, sessionCode)
+        .slice(0, 10)
+        .map(({ question, correctAnswer }) => ({ question, correctAnswer }));
+      if (answerKeys.length === 0) throw new Error("No questions are available for this exam setup.");
+
+      try {
+        return await roomRequest<{ session: Session; participant: Participant }>("", {
+          method: "POST",
+          body: JSON.stringify({ hostName, grade, subject, chapterId, difficulty, sessionCode, answerKeys }),
+        });
+      } catch (error) {
+        if ((error as Error & { status?: number }).status !== 409) throw error;
+      }
+    }
+    throw new Error("Could not reserve a room code. Please try again.");
   }
 
   const sessionId = crypto.randomUUID();
@@ -178,12 +198,13 @@ export const submitAnswer = async (
   sessionCode: string,
   participantId: string,
   questionIndex: number,
+  questionText: string,
   selectedAnswer: string,
   isCorrect: boolean,
 ) => {
   if (isCloudflareRoomsConfigured) {
     return roomRequest(`/${sessionCode.toUpperCase()}/answers`, {
-      method: "POST", body: JSON.stringify({ participantId, questionIndex, selectedAnswer, isCorrect }),
+      method: "POST", body: JSON.stringify({ participantId, questionIndex, questionText, selectedAnswer }),
     });
   }
 

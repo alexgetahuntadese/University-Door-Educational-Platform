@@ -39,8 +39,9 @@ export default {
         return json({ error: "Enter a name, grade, and subject to create a room." }, 400, request);
       }
 
-      for (let attempt = 0; attempt < 8; attempt += 1) {
-        const code = makeCode();
+      const requestedCode = input.sessionCode?.toUpperCase();
+      const codes = requestedCode ? [requestedCode] : Array.from({ length: 8 }, makeCode);
+      for (const code of codes) {
         const sessionId = crypto.randomUUID();
         const createdAt = new Date().toISOString();
         const session = {
@@ -64,7 +65,7 @@ export default {
           method: "POST", headers: { "content-type": "application/json" },
           body: JSON.stringify({ session, participant, expiresAt: Date.now() + ROOM_LIFETIME_MS }),
         });
-        if (result.status !== 409) return withCors(result, request);
+        if (result.status !== 409 || requestedCode) return withCors(result, request);
       }
       return json({ error: "Could not reserve a room code. Please try again." }, 503, request);
     }
@@ -111,6 +112,7 @@ export class RoomDurableObject {
         session: input.session,
         participants: [input.participant],
         answers: [],
+        ...(Array.isArray(input.answerKeys) && { answerKeys: input.answerKeys }),
         expiresAt: input.expiresAt,
       });
       await this.state.storage.setAlarm(input.expiresAt);
@@ -164,7 +166,18 @@ export class RoomDurableObject {
         answer.participant_id === participant.id && answer.question_index === room.session.current_question_index,
       );
       if (duplicate) return json({ accepted: true, duplicate: true });
-      const correct = input.isCorrect === true;
+      const questionText = typeof input?.questionText === "string" ? input.questionText.slice(0, 2000) : "";
+      let correct;
+      if (Array.isArray(room.answerKeys)) {
+        const answerKey = room.answerKeys[room.session.current_question_index];
+        if (!answerKey || answerKey.question !== questionText) {
+          return json({ error: "This question does not belong to the room. Refresh the exam and try again." }, 400);
+        }
+        correct = input.selectedAnswer === answerKey.correctAnswer;
+      } else {
+        // Existing rooms keep working until their 24-hour expiry after this Worker update.
+        correct = input.isCorrect === true;
+      }
       room.answers.push({
         id: crypto.randomUUID(), session_id: room.session.id, participant_id: participant.id,
         question_index: room.session.current_question_index,
@@ -173,7 +186,7 @@ export class RoomDurableObject {
       });
       if (correct) participant.score += 10;
       await this.state.storage.put("room", room);
-      return json({ accepted: true });
+      return json({ accepted: true, correct });
     }
 
     return json({ error: "Not found." }, 404);
@@ -194,6 +207,21 @@ function validName(value) {
 }
 
 function validRoomSetup(input) {
+  const answerKeys = input?.answerKeys;
+  const validAnswerKeys = answerKeys === undefined || (
+    Array.isArray(answerKeys) &&
+    answerKeys.length > 0 &&
+    answerKeys.length <= 10 &&
+    answerKeys.every((entry) =>
+      entry &&
+      typeof entry.question === "string" &&
+      entry.question.trim().length > 0 &&
+      entry.question.length <= 2000 &&
+      typeof entry.correctAnswer === "string" &&
+      entry.correctAnswer.length > 0 &&
+      entry.correctAnswer.length <= 500
+    )
+  );
   return Boolean(
     input &&
       validName(input.hostName) &&
@@ -201,7 +229,10 @@ function validRoomSetup(input) {
       typeof input.subject === "string" &&
       input.subject.trim().length > 0 &&
       input.subject.trim().length <= 80 &&
-      ["all", "easy", "medium", "hard"].includes(String(input.difficulty ?? "all").toLowerCase()),
+      ["all", "easy", "medium", "hard"].includes(String(input.difficulty ?? "all").toLowerCase()) &&
+      (!input.sessionCode || /^[A-HJ-NP-Z2-9]{6}$/i.test(input.sessionCode)) &&
+      validAnswerKeys &&
+      (!input.sessionCode || Array.isArray(answerKeys)),
   );
 }
 

@@ -167,9 +167,11 @@ const SessionPage = () => {
 
   const handleAnswerSubmit = async (selectedAnswer: string, isCorrect: boolean) => {
     if (!session || !participantId || hasAnswered) return;
+    const currentQuestion = questions[session.current_question_index];
+    if (!currentQuestion) return;
     setHasAnswered(true);
     try {
-      await submitAnswer(session.session_code, participantId, session.current_question_index, selectedAnswer, isCorrect);
+      await submitAnswer(session.session_code, participantId, session.current_question_index, currentQuestion.question, selectedAnswer, isCorrect);
       await refreshData();
     } catch (error) {
       setHasAnswered(false);

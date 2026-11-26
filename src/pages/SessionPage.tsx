@@ -75,7 +75,7 @@ const SessionPage = () => {
         return;
       }
 
-      const currentParticipants = await getSessionParticipants(currentSession.id);
+      const currentParticipants = await getSessionParticipants(currentSession.session_code);
       setSession(currentSession);
       setParticipants(currentParticipants);
       setRoomError(null);
@@ -121,26 +121,29 @@ const SessionPage = () => {
 
   const handleStartSession = async () => {
     if (!session) return;
-    await startSession(session.id);
+    if (!participantId) return;
+    await startSession(session.session_code, participantId);
     await refreshData();
   };
 
   const handleNextQuestion = async () => {
     if (!session) return;
-    await nextQuestion(session.id, session.current_question_index);
+    if (!participantId) return;
+    await nextQuestion(session.session_code, participantId, session.current_question_index);
     await refreshData();
   };
 
   const handleEndSession = async () => {
     if (!session) return;
-    await endSession(session.id);
+    if (!participantId) return;
+    await endSession(session.session_code, participantId);
     await refreshData();
   };
 
   const handleAnswerSubmit = async (selectedAnswer: string, isCorrect: boolean) => {
     if (!session || !participantId || hasAnswered) return;
     setHasAnswered(true);
-    await submitAnswer(session.id, participantId, session.current_question_index, selectedAnswer, isCorrect);
+    await submitAnswer(session.session_code, participantId, session.current_question_index, selectedAnswer, isCorrect);
     await refreshData();
   };
 

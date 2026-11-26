@@ -1,7 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
-import { isSupabaseConfigured } from "@/lib/supabaseConfig";
-
 export type SessionStatus = "waiting" | "in_progress" | "completed";
 
 export interface Session {
@@ -39,17 +35,13 @@ interface SessionAnswer {
 const SESSIONS_KEY = "quiz_sessions";
 const PARTICIPANTS_KEY = "session_participants";
 const ANSWERS_KEY = "session_answers";
+const cloudflareRoomsUrl = import.meta.env.VITE_CLOUDFLARE_ROOMS_URL?.trim().replace(/\/$/, "");
 
-// These tables are added by supabase/migrations/20261126000000_virtual_exam_rooms.sql.
-const roomDb = supabase as unknown as SupabaseClient<any>;
+export const isCloudflareRoomsConfigured = Boolean(cloudflareRoomsUrl);
 
 export const generateSessionCode = (): string => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 6; i += 1) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
 };
 
 const getLocalSessions = (): Session[] => JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? "[]");
@@ -59,8 +51,15 @@ const saveLocalParticipants = (participants: Participant[]) => localStorage.setI
 const getLocalAnswers = (): SessionAnswer[] => JSON.parse(localStorage.getItem(ANSWERS_KEY) ?? "[]");
 const saveLocalAnswers = (answers: SessionAnswer[]) => localStorage.setItem(ANSWERS_KEY, JSON.stringify(answers));
 
-const throwIfError = (error: { message: string } | null) => {
-  if (error) throw new Error(error.message);
+const roomRequest = async <T,>(path: string, init?: RequestInit): Promise<T> => {
+  if (!cloudflareRoomsUrl) throw new Error("Cloudflare exam rooms are not configured.");
+  const response = await fetch(`${cloudflareRoomsUrl}/api/rooms${path}`, {
+    ...init,
+    headers: { "content-type": "application/json", ...init?.headers },
+  });
+  const result = await response.json().catch(() => ({})) as { error?: string };
+  if (!response.ok) throw new Error(result.error ?? "Could not connect to the exam room.");
+  return result as T;
 };
 
 export const createSession = async (
@@ -70,12 +69,18 @@ export const createSession = async (
   chapterId: string,
   difficulty: string,
 ) => {
-  const sessionCode = generateSessionCode();
+  if (isCloudflareRoomsConfigured) {
+    return roomRequest<{ session: Session; participant: Participant }>("", {
+      method: "POST",
+      body: JSON.stringify({ hostName, grade, subject, chapterId, difficulty }),
+    });
+  }
+
   const sessionId = crypto.randomUUID();
   const createdAt = new Date().toISOString();
   const session: Session = {
     id: sessionId,
-    session_code: sessionCode,
+    session_code: generateSessionCode(),
     host_name: hostName,
     status: "waiting",
     grade,
@@ -86,210 +91,104 @@ export const createSession = async (
     created_at: createdAt,
   };
   const participant: Participant = {
-    id: crypto.randomUUID(),
-    session_id: sessionId,
-    player_name: hostName,
-    score: 0,
-    is_host: true,
-    joined_at: createdAt,
+    id: crypto.randomUUID(), session_id: sessionId, player_name: hostName,
+    score: 0, is_host: true, joined_at: createdAt,
   };
-
-  if (isSupabaseConfigured) {
-    const { error: sessionError } = await roomDb.from("quiz_sessions").insert(session);
-    throwIfError(sessionError);
-    const { error: participantError } = await roomDb.from("session_participants").insert(participant);
-    if (participantError) {
-      await roomDb.from("quiz_sessions").delete().eq("id", sessionId);
-      throwIfError(participantError);
-    }
-  } else {
-    saveLocalSessions([...getLocalSessions(), session]);
-    saveLocalParticipants([...getLocalParticipants(), participant]);
-  }
-
+  saveLocalSessions([...getLocalSessions(), session]);
+  saveLocalParticipants([...getLocalParticipants(), participant]);
   return { session, participant };
 };
 
 export const joinSession = async (sessionCode: string, playerName: string) => {
   const normalizedCode = sessionCode.trim().toUpperCase();
-  let session: Session | null = null;
-
-  if (isSupabaseConfigured) {
-    const { data, error } = await roomDb
-      .from("quiz_sessions")
-      .select("*")
-      .eq("session_code", normalizedCode)
-      .eq("status", "waiting")
-      .maybeSingle();
-    throwIfError(error);
-    session = data as Session | null;
-  } else {
-    session = getLocalSessions().find(
-      (item) => item.session_code === normalizedCode && item.status === "waiting",
-    ) ?? null;
+  if (isCloudflareRoomsConfigured) {
+    return roomRequest<{ session: Session; participant: Participant }>(`/${normalizedCode}/join`, {
+      method: "POST", body: JSON.stringify({ playerName }),
+    });
   }
 
+  const session = getLocalSessions().find(
+    (item) => item.session_code === normalizedCode && item.status === "waiting",
+  ) ?? null;
   if (!session) throw new Error("Room not found. Check the code and make sure the host has not started the exam.");
-
   const participant: Participant = {
-    id: crypto.randomUUID(),
-    session_id: session.id,
-    player_name: playerName.trim(),
-    score: 0,
-    is_host: false,
-    joined_at: new Date().toISOString(),
+    id: crypto.randomUUID(), session_id: session.id, player_name: playerName.trim(),
+    score: 0, is_host: false, joined_at: new Date().toISOString(),
   };
-
-  if (isSupabaseConfigured) {
-    const { error } = await roomDb.from("session_participants").insert(participant);
-    throwIfError(error);
-  } else {
-    saveLocalParticipants([...getLocalParticipants(), participant]);
-  }
-
+  saveLocalParticipants([...getLocalParticipants(), participant]);
   return { session, participant };
 };
 
 export const getSession = async (sessionCode: string): Promise<Session | null> => {
-  if (isSupabaseConfigured) {
-    const { data, error } = await roomDb
-      .from("quiz_sessions")
-      .select("*")
-      .eq("session_code", sessionCode.trim().toUpperCase())
-      .maybeSingle();
-    throwIfError(error);
-    return data as Session | null;
+  if (isCloudflareRoomsConfigured) {
+    const result = await roomRequest<{ session: Session | null }>(`/${sessionCode.trim().toUpperCase()}`);
+    return result.session;
   }
-
   return getLocalSessions().find((item) => item.session_code === sessionCode.toUpperCase()) ?? null;
 };
 
-export const getSessionParticipants = async (sessionId: string): Promise<Participant[]> => {
-  if (isSupabaseConfigured) {
-    const { data, error } = await roomDb
-      .from("session_participants")
-      .select("*")
-      .eq("session_id", sessionId)
-      .order("score", { ascending: false });
-    throwIfError(error);
-    return (data ?? []) as Participant[];
+export const getSessionParticipants = async (sessionCode: string): Promise<Participant[]> => {
+  if (isCloudflareRoomsConfigured) {
+    const result = await roomRequest<{ participants: Participant[] }>(`/${sessionCode.trim().toUpperCase()}`);
+    return result.participants;
   }
-
-  return getLocalParticipants()
-    .filter((participant) => participant.session_id === sessionId)
-    .sort((a, b) => b.score - a.score);
+  const session = getLocalSessions().find((item) => item.session_code === sessionCode.toUpperCase());
+  return getLocalParticipants().filter((participant) => participant.session_id === session?.id).sort((a, b) => b.score - a.score);
 };
 
-export const startSession = async (sessionId: string) => {
-  if (isSupabaseConfigured) {
-    const { error } = await roomDb.from("quiz_sessions").update({ status: "in_progress", current_question_index: 0 }).eq("id", sessionId);
-    throwIfError(error);
-    return;
-  }
-
-  const sessions = getLocalSessions();
-  const session = sessions.find((item) => item.id === sessionId);
-  if (session) {
-    session.status = "in_progress";
-    session.current_question_index = 0;
-    saveLocalSessions(sessions);
-  }
+const updateSession = async (sessionCode: string, action: string, participantId: string, payload: object = {}) => {
+  await roomRequest(`/${sessionCode.toUpperCase()}/${action}`, {
+    method: "POST", body: JSON.stringify({ participantId, ...payload }),
+  });
 };
 
-export const nextQuestion = async (sessionId: string, currentIndex: number) => {
-  if (isSupabaseConfigured) {
-    const { error } = await roomDb.from("quiz_sessions").update({ current_question_index: currentIndex + 1 }).eq("id", sessionId);
-    throwIfError(error);
-    return;
-  }
-
+export const startSession = async (sessionCode: string, participantId: string) => {
+  if (isCloudflareRoomsConfigured) return updateSession(sessionCode, "start", participantId);
   const sessions = getLocalSessions();
-  const session = sessions.find((item) => item.id === sessionId);
-  if (session) {
-    session.current_question_index = currentIndex + 1;
-    saveLocalSessions(sessions);
-  }
+  const session = sessions.find((item) => item.session_code === sessionCode.toUpperCase());
+  if (session) { session.status = "in_progress"; session.current_question_index = 0; saveLocalSessions(sessions); }
 };
 
-export const endSession = async (sessionId: string) => {
-  if (isSupabaseConfigured) {
-    const { error } = await roomDb.from("quiz_sessions").update({ status: "completed" }).eq("id", sessionId);
-    throwIfError(error);
-    return;
-  }
-
+export const nextQuestion = async (sessionCode: string, participantId: string, currentIndex: number) => {
+  if (isCloudflareRoomsConfigured) return updateSession(sessionCode, "next", participantId, { currentIndex });
   const sessions = getLocalSessions();
-  const session = sessions.find((item) => item.id === sessionId);
-  if (session) {
-    session.status = "completed";
-    saveLocalSessions(sessions);
-  }
+  const session = sessions.find((item) => item.session_code === sessionCode.toUpperCase());
+  if (session) { session.current_question_index = currentIndex + 1; saveLocalSessions(sessions); }
+};
+
+export const endSession = async (sessionCode: string, participantId: string) => {
+  if (isCloudflareRoomsConfigured) return updateSession(sessionCode, "end", participantId);
+  const sessions = getLocalSessions();
+  const session = sessions.find((item) => item.session_code === sessionCode.toUpperCase());
+  if (session) { session.status = "completed"; saveLocalSessions(sessions); }
 };
 
 export const submitAnswer = async (
-  sessionId: string,
+  sessionCode: string,
   participantId: string,
   questionIndex: number,
   selectedAnswer: string,
   isCorrect: boolean,
 ) => {
-  if (isSupabaseConfigured) {
-    const { data: existingAnswer, error: lookupError } = await roomDb
-      .from("session_answers")
-      .select("id")
-      .eq("participant_id", participantId)
-      .eq("question_index", questionIndex)
-      .maybeSingle();
-    throwIfError(lookupError);
-    if (existingAnswer) return;
-
-    const { error: answerError } = await roomDb.from("session_answers").insert({
-      id: crypto.randomUUID(),
-      session_id: sessionId,
-      participant_id: participantId,
-      question_index: questionIndex,
-      selected_answer: selectedAnswer,
-      is_correct: isCorrect,
-      answered_at: new Date().toISOString(),
+  if (isCloudflareRoomsConfigured) {
+    return roomRequest(`/${sessionCode.toUpperCase()}/answers`, {
+      method: "POST", body: JSON.stringify({ participantId, questionIndex, selectedAnswer, isCorrect }),
     });
-    throwIfError(answerError);
-
-    if (isCorrect) {
-      const { data: participant, error: participantLookupError } = await roomDb
-        .from("session_participants")
-        .select("score")
-        .eq("id", participantId)
-        .single();
-      throwIfError(participantLookupError);
-      const { error: scoreError } = await roomDb
-        .from("session_participants")
-        .update({ score: (participant?.score ?? 0) + 10 })
-        .eq("id", participantId);
-      throwIfError(scoreError);
-    }
-    return;
   }
 
+  const session = getLocalSessions().find((item) => item.session_code === sessionCode.toUpperCase());
+  if (!session) return;
   const answers = getLocalAnswers();
   if (answers.some((answer) => answer.participant_id === participantId && answer.question_index === questionIndex)) return;
-
   answers.push({
-    id: crypto.randomUUID(),
-    session_id: sessionId,
-    participant_id: participantId,
-    question_index: questionIndex,
-    selected_answer: selectedAnswer,
-    is_correct: isCorrect,
+    id: crypto.randomUUID(), session_id: session.id, participant_id: participantId,
+    question_index: questionIndex, selected_answer: selectedAnswer, is_correct: isCorrect,
     answered_at: new Date().toISOString(),
   });
   saveLocalAnswers(answers);
-
   if (isCorrect) {
     const participants = getLocalParticipants();
     const participant = participants.find((item) => item.id === participantId);
-    if (participant) {
-      participant.score += 10;
-      saveLocalParticipants(participants);
-    }
+    if (participant) { participant.score += 10; saveLocalParticipants(participants); }
   }
 };

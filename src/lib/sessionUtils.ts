@@ -110,7 +110,7 @@ export const joinSession = async (sessionCode: string, playerName: string) => {
   const session = getLocalSessions().find(
     (item) => item.session_code === normalizedCode && item.status === "waiting",
   ) ?? null;
-  if (!session) throw new Error("Room not found. Check the code and make sure the host has not started the exam.");
+  if (!session) throw new Error("This room is not available on this device. Refresh the app, then ask the host to create and share a new exam room.");
   const participant: Participant = {
     id: crypto.randomUUID(), session_id: session.id, player_name: playerName.trim(),
     score: 0, is_host: false, joined_at: new Date().toISOString(),

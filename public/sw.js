@@ -1,5 +1,5 @@
-const STATIC_CACHE = "simple-road-static-v6";
-const RUNTIME_CACHE = "simple-road-runtime-v6";
+const STATIC_CACHE = "simple-road-static-v7";
+const RUNTIME_CACHE = "simple-road-runtime-v7";
 const APP_SHELL = [
   "/",
   "/index.html",

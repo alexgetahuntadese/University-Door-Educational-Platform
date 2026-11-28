@@ -167,6 +167,18 @@ export const getSessionParticipants = async (sessionCode: string): Promise<Parti
   return getLocalParticipants().filter((participant) => participant.session_id === session?.id).sort((a, b) => b.score - a.score);
 };
 
+export const getSessionRoomState = async (sessionCode: string): Promise<{ session: Session | null; participants: Participant[] }> => {
+  if (isCloudflareRoomsConfigured) {
+    return roomRequest<{ session: Session | null; participants: Participant[] }>(`/${sessionCode.trim().toUpperCase()}`);
+  }
+
+  const session = getLocalSessions().find((item) => item.session_code === sessionCode.toUpperCase()) ?? null;
+  const participants = session
+    ? getLocalParticipants().filter((participant) => participant.session_id === session.id).sort((a, b) => b.score - a.score)
+    : [];
+  return { session, participants };
+};
+
 const updateSession = async (sessionCode: string, action: string, participantId: string, payload: object = {}) => {
   await roomRequest(`/${sessionCode.toUpperCase()}/${action}`, {
     method: "POST", body: JSON.stringify({ participantId, ...payload }),

@@ -1,5 +1,5 @@
-const STATIC_CACHE = "simple-road-static-v8";
-const RUNTIME_CACHE = "simple-road-runtime-v8";
+const STATIC_CACHE = "simple-road-static-v9";
+const RUNTIME_CACHE = "simple-road-runtime-v9";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -33,6 +33,12 @@ const isApiRequest = (request) => {
 
 // Network-first strategy for API requests with cache fallback
 const networkFirst = async (request) => {
+  const url = new URL(request.url);
+  // Live room state must never be served from an offline snapshot.
+  if (url.pathname === "/api/rooms" || url.pathname.startsWith("/api/rooms/")) {
+    return fetch(request);
+  }
+
   // Cache Storage only accepts GET requests. Room creation, joining, answers,
   // and other API writes must pass through unchanged to the network.
   if (request.method !== "GET") {

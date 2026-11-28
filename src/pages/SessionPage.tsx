@@ -1,17 +1,16 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import StarField from '@/components/StarField';
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Copy, Link2, Play, Trophy, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  getSession, 
-  getSessionParticipants, 
-  startSession, 
-  endSession, 
-  nextQuestion, 
-  submitAnswer 
+import {
+  getSessionRoomState,
+  startSession,
+  endSession,
+  nextQuestion,
+  submitAnswer
 } from "@/lib/sessionUtils";
 import { getQuestionsForQuiz } from "@/lib/quizUtils";
 import LiveQuizSession from "@/components/session/LiveQuizSession";
@@ -50,7 +49,7 @@ const SessionPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+
   const [session, setSession] = useState<Session | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [participantId] = useState<string | null>(() => sessionStorage.getItem('participantId'));
@@ -58,6 +57,7 @@ const SessionPage = () => {
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
   const [roomError, setRoomError] = useState<string | null>(null);
   const [isActionPending, setIsActionPending] = useState(false);
+  const refreshVersion = useRef(0);
   const isHost = Boolean(participants.some((participant) => participant.id === participantId && participant.is_host));
   const questions = useMemo(() => {
     if (!session) return [];
@@ -78,8 +78,10 @@ const SessionPage = () => {
       return;
     }
 
+    const requestVersion = ++refreshVersion.current;
     try {
-      const currentSession = await getSession(sessionCode);
+      const { session: currentSession, participants: currentParticipants } = await getSessionRoomState(sessionCode);
+      if (requestVersion !== refreshVersion.current) return;
       if (!currentSession) {
         setSession(null);
         setParticipants([]);
@@ -88,14 +90,15 @@ const SessionPage = () => {
         return;
       }
 
-      const currentParticipants = await getSessionParticipants(currentSession.session_code);
       setSession(currentSession);
       setParticipants(currentParticipants);
       setRoomError(null);
     } catch (error) {
-      setRoomError(error instanceof Error ? error.message : "Could not connect to this exam room.");
+      if (requestVersion === refreshVersion.current) {
+        setRoomError(error instanceof Error ? error.message : "Could not connect to this exam room.");
+      }
     } finally {
-      setIsLoadingRoom(false);
+      if (requestVersion === refreshVersion.current) setIsLoadingRoom(false);
     }
   }, [sessionCode]);
 
@@ -104,7 +107,7 @@ const SessionPage = () => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const poll = async () => {
       await refreshData();
-      if (active) timer = setTimeout(poll, 2500);
+      if (active) timer = setTimeout(poll, 1000);
     };
     void poll();
     return () => {
@@ -112,6 +115,18 @@ const SessionPage = () => {
       if (timer) clearTimeout(timer);
     };
   }, [sessionCode, refreshData]);
+
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void refreshData();
+    };
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [refreshData]);
 
   useEffect(() => {
     setHasAnswered(false);
@@ -329,7 +344,7 @@ const SessionPage = () => {
                   hasAnswered={hasAnswered}
                 />
               )}
-              
+
               {isHost && (
                 <div className="mt-4 flex gap-2">
                   {!isLastQuestion ? (
